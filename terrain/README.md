@@ -53,3 +53,16 @@ python3 terrain/scripts/convert_dem.py \
 ## 標高の読取
 
 `LocalDemStore` は、座標に対応する 2 次メッシュを `index.json` から選び、バイナリ内の必要な 2 バイトだけを読みます。タイル全体や全地域のDEMをメモリに載せません。欠損値・変換対象外の地点は例外として扱い、推測値を返しません。
+
+## ローカル照会
+
+変換後は、外部サービスなしで任意地点の標高を確認できます。
+
+```bash
+python3 terrain/scripts/query_dem.py \
+  --data gsi/derived \
+  --latitude 34.75 \
+  --longitude 139.00
+```
+
+成功時は標高・使用メッシュ・格子座標を JSON で出力します。範囲外または海などで標高が欠損している場合は、終了コード `2` で理由を表示します。
