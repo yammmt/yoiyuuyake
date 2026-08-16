@@ -34,6 +34,7 @@ class LocalDemStoreTests(unittest.TestCase):
         self.store = LocalDemStore(self.root)
 
     def tearDown(self) -> None:
+        self.store.close()
         self.temporary_directory.cleanup()
 
     def test_reads_an_elevation_without_loading_the_whole_tile(self) -> None:
