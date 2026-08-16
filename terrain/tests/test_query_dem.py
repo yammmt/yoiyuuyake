@@ -39,5 +39,5 @@ class QueryDemTests(unittest.TestCase):
             ], check=True, capture_output=True, text=True)
 
         response = json.loads(result.stdout)
-        self.assertEqual(response["elevation_meters"], 12.3)
+        self.assertEqual(response["elevation_meters"], 123.0)
         self.assertEqual(response["mesh_code"], "demo")

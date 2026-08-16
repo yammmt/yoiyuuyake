@@ -72,10 +72,10 @@ class DemGmlParser:
         if math.isclose(height, NODATA_INPUT):
             self._values.append(NODATA_OUTPUT)
             return
-        decimeters = round(height * 10)
-        if not -32767 <= decimeters <= 32767:
+        meters = round(height)
+        if not -32767 <= meters <= 32767:
             raise ValueError(f"標高値が int16 の範囲外です: {height}")
-        self._values.append(decimeters)
+        self._values.append(meters)
 
     def result(self) -> tuple[dict[str, object], bytes]:
         if not (self.lower_corner and self.upper_corner and self.high):
@@ -142,7 +142,7 @@ def convert_archive(source: Path, destination: Path, limit: int | None = None) -
 
     index = {
         "format_version": FORMAT_VERSION,
-        "value_unit": "0.1m",
+        "value_unit": "1m",
         "byte_order": "little-endian",
         "missing_value": NODATA_OUTPUT,
         "tiles": converted,

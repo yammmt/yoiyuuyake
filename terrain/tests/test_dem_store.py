@@ -39,14 +39,14 @@ class LocalDemStoreTests(unittest.TestCase):
     def test_reads_an_elevation_without_loading_the_whole_tile(self) -> None:
         sample = self.store.elevation_at(35.09, 139.01)
 
-        self.assertEqual(sample.elevation_meters, 1.2)
+        self.assertEqual(sample.elevation_meters, 12.0)
         self.assertEqual(sample.mesh_code, "demo")
         self.assertEqual((sample.row, sample.column), (0, 0))
 
     def test_reads_a_southern_eastern_cell(self) -> None:
         sample = self.store.elevation_at(35.01, 139.19)
 
-        self.assertEqual(sample.elevation_meters, 4.5)
+        self.assertEqual(sample.elevation_meters, 45.0)
         self.assertEqual((sample.row, sample.column), (1, 1))
 
     def test_reports_missing_values(self) -> None:

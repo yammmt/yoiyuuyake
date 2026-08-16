@@ -46,7 +46,7 @@ class LocalDemStore:
         value = struct.unpack("<h", raw_value)[0]
         if value == self.missing_value:
             raise DemNoElevationError("指定地点の標高データがありません")
-        return ElevationSample(value / 10, tile["mesh_code"], row, column)
+        return ElevationSample(float(value), tile["mesh_code"], row, column)
 
     def _find_tile(self, latitude: float, longitude: float) -> dict[str, object]:
         for tile in self.tiles:

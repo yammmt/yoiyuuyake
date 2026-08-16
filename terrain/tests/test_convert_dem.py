@@ -33,7 +33,7 @@ class ConvertDemTests(unittest.TestCase):
         self.assertEqual(metadata["rows"], 2)
         self.assertEqual(metadata["columns"], 2)
         self.assertEqual(metadata["north"], 35.1)
-        self.assertEqual(payload, b"\x0c\x00\x00\x80\x22\x00\xc8\xff")
+        self.assertEqual(payload, b"\x01\x00\x00\x80\x03\x00\xfa\xff")
 
     def test_convert_archive_writes_tile_and_index(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
