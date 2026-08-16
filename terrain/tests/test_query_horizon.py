@@ -35,7 +35,7 @@ class QueryHorizonTests(unittest.TestCase):
                 "--data", str(root),
                 "--latitude", "35.0",
                 "--longitude", "139.0",
-                "--azimuth", "270",
+                "--date", "2026-08-16",
                 "--max-distance", "100",
                 "--sample-interval", "100",
                 "--ray-count", "1",
@@ -45,3 +45,4 @@ class QueryHorizonTests(unittest.TestCase):
         self.assertEqual(response["visibility"]["label"], "広い")
         self.assertEqual(len(response["rays"]), 1)
         self.assertIn("obstruction_distance_meters", response["rays"][0])
+        self.assertIn("sunset", response["astronomy"])
