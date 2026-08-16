@@ -23,6 +23,14 @@ python3 terrain/scripts/validate_locations.py --data gsi/derived-v1m
 
 東京駅・大月・DEM範囲境界の3地点を使い、計算値の意図しない変化と範囲外エラーを検出します。実景・写真との精度検証は別途必要です。
 
+## ローカル画面
+
+```bash
+python3 terrain/scripts/serve_terrain.py --data gsi/derived-v1m
+```
+
+`http://127.0.0.1:8787` を開くと、地図・外部APIなしで座標と仮の日没方位から地形視界を確認できます。
+
 配布 ZIP の内側には、2 次メッシュごとの ZIP があり、その中の GML/XML に 10m 格子の標高値が入っています。`fmdid*.xml` はメタデータであり、変換対象にはしません。
 
 ## 変換後のタイル形式
