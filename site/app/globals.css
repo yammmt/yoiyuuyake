@@ -1,0 +1,17 @@
+* { box-sizing: border-box; }
+
+html, body, main, iframe {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+}
+
+body {
+  overflow: hidden;
+  background: #f7f3f0;
+}
+
+iframe {
+  display: block;
+}
