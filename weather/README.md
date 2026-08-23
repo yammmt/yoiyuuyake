@@ -4,7 +4,7 @@ Open-Meteoから、夕焼け評価に必要な今日の時間別予報を取得�
 
 ```text
 open_meteo.py  → API通信とレスポンス検証
-sunset_window.py → 日没前後の時間を選ぶ（次段階）
+sunset_window.py → 日没前後の時間を選ぶ
 scoring.py → Gradient / Dramaticを採点（次段階）
 ```
 
@@ -27,15 +27,26 @@ scoring.py → Gradient / Dramaticを採点（次段階）
 
 このフォールバックは欠損値を補間するものではありません。自動選択モデルでも完全な値を取得できなければ、評価不能として失敗します。また、JMA指定時のHTTPエラーや不正応答はモデルカバレッジ不足とは区別し、そのまま失敗させます。
 
+## 日没前後の抽出ルール
+
+採点の対象期間は、MVPの見頃の目安と同じ「日没20分前から日没25分後まで」です。Open-Meteoの1時間ごとの予報から、この期間の両端を覆う正時の値をすべて選びます。
+
+- 日没18:24の場合: 対象18:04〜18:49、選択する予報18:00・19:00
+- 日没18:00の場合: 対象17:40〜18:25、選択する予報17:00・18:00・19:00
+
+日没時刻と予報時刻はタイムゾーン付きで受け取り、`Asia/Tokyo`に変換して比較・出力します。Open-Meteoが返すJSTのローカル時刻には取得時に`Asia/Tokyo`を付与します。必要な正時の予報が1つでもない場合、重複する場合、正時でない値が混じる場合は、補間や代用をせず`SunsetWindowError`を返します。
+
 ## 利用方法
 
 ```python
 from weather.scripts.open_meteo import OpenMeteoError, fetch_today_forecast
+from weather.scripts.sunset_window import SunsetWindowError, select_sunset_window
 
 try:
     hours = fetch_today_forecast(35.6812, 139.7671)
-except OpenMeteoError as error:
-    # スコアを推測せず、呼び出し側で再試行可能なエラーとして扱う
+    window = select_sunset_window(sunset, hours)
+except (OpenMeteoError, SunsetWindowError) as error:
+    # 取得失敗や必要な時間の欠落時は採点しない
     print(error)
 ```
 
