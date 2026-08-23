@@ -63,7 +63,7 @@ class OpenMeteoTests(unittest.TestCase):
         )
 
         self.assertEqual(len(hours), 3)
-        self.assertEqual(hours[0].time.isoformat(), "2026-08-16T17:00:00")
+        self.assertEqual(hours[0].time.isoformat(), "2026-08-16T17:00:00+09:00")
         self.assertEqual(hours[1].visibility, 24100.0)
         self.assertEqual(hours[2].relative_humidity, 70.0)
 
@@ -124,7 +124,12 @@ class OpenMeteoTests(unittest.TestCase):
                     )
 
     def test_invalid_time_is_an_error(self):
-        for invalid_time in ("not-a-time", "2026-08-16", 123):
+        for invalid_time in (
+            "not-a-time",
+            "2026-08-16",
+            "2026-08-16T17:00:00+09:00",
+            123,
+        ):
             with self.subTest(invalid_time=invalid_time):
                 data = deepcopy(self.fixture)
                 data["hourly"]["time"][0] = invalid_time

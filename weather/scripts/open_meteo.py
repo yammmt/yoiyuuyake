@@ -11,9 +11,11 @@ from typing import Any
 from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import urlopen
+from zoneinfo import ZoneInfo
 
 ENDPOINT = "https://api.open-meteo.com/v1/forecast"
 PREFERRED_MODEL = "jma_seamless"
+JST = ZoneInfo("Asia/Tokyo")
 HOURLY_VARIABLES = (
     "cloud_cover_low",
     "cloud_cover_mid",
@@ -179,9 +181,12 @@ def _parse_time(value: Any) -> datetime:
     if not isinstance(value, str) or "T" not in value:
         raise OpenMeteoError("時間別予報の時刻が不正です")
     try:
-        return datetime.fromisoformat(value)
+        parsed = datetime.fromisoformat(value)
     except ValueError as error:
         raise OpenMeteoError("時間別予報の時刻が不正です") from error
+    if parsed.tzinfo is not None:
+        raise OpenMeteoError("時間別予報の時刻が不正です")
+    return parsed.replace(tzinfo=JST)
 
 
 def _number_at(
