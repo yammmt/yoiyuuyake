@@ -30,14 +30,14 @@
 MVPに向けて、地点の夕焼けを評価するための部品を次のように分けている。
 
 ```text
-site/       React / Cloudflare Worker のWebアプリ基盤（現時点ではUIモック）
+site/       React / Cloudflare Worker のWebアプリ基盤（Google Mapでの地点指定まで実装済み）
 terrain/    国土地理院DEM、日没の天文計算、地形視界のローカル検証
 weather/    Open-Meteoの時間別予報の取得・検証
 docs/       MVP仕様、判断記録、UI参照
 gsi/        Git管理外の国土地理院DEM元データ・変換済みタイル
 ```
 
-`terrain/`は、緯度・経度・対象日から日没時刻と方位を計算し、DEM上の西空の地平線を評価する。建物・樹木は考慮しない。`weather/`は、JMA系モデルを優先してOpen-Meteoから低・中・高層雲量、視程、湿度、降水、風速を取得する。日没前後の抽出と`Gradient` / `Dramatic`の採点、ならびにReactアプリへの統合はこれから行う。
+`terrain/`は、緯度・経度・対象日から日没時刻と方位を計算し、DEM上の西空の地平線を評価する。建物・樹木は考慮しない。`weather/`は、JMA系モデルを優先してOpen-Meteoから低・中・高層雲量、視程、湿度、降水、風速を取得する。日没前後の抽出と`Gradient` / `Dramatic`の採点、ならびに地形・気象処理のReactアプリへの統合はこれから行う。
 
 ## ローカルでの確認
 
@@ -64,12 +64,29 @@ python3 terrain/scripts/serve_terrain.py --data gsi/derived-v1m
 Node.js 22.13以降を用いる。
 
 ```bash
+read -s "VITE_GOOGLE_MAPS_API_KEY?Google Maps API key: "
+echo
+export VITE_GOOGLE_MAPS_API_KEY
+
 cd site
 npm ci
 npm run dev
 ```
 
-表示先のURLは起動時に表示される。将来のMVPをローカルで開発・確認する際は、この`npm run dev`を使う。公開時は`npm run build`の成果物をWorkerへデプロイする。現在の`site/`はUIモックを表示する段階であり、`terrain/`・`weather/`の処理とは未接続である。
+表示先のURLは起動時に表示される。Google Mapをクリックすると、予報対象の緯度・経度を選択できる。公開時は`npm run build`の成果物をWorkerへデプロイする。地形・気象処理とは未接続である。
+
+Google Cloudでは、`Maps JavaScript API`だけを有効化したブラウザ用キーを作る。キーには次の制限を設定する。
+
+```text
+アプリケーションの制限: ウェブサイト
+許可する参照元: http://localhost:3000/*
+                 http://127.0.0.1:3000/*
+APIの制限: Maps JavaScript API のみ
+```
+
+`npm run dev`はポート3000へ固定している。ポートが使用中の場合は別の番号へ移動せず起動に失敗するため、既存の開発サーバーを終了してから再実行する。
+
+キーはGit管理せず、上記コマンドで起動したターミナルにだけ渡す。終了後は`unset VITE_GOOGLE_MAPS_API_KEY`で削除する。
 
 ## 検証
 
