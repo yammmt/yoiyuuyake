@@ -5,7 +5,7 @@ Open-Meteoから、夕焼け評価に必要な今日の時間別予報を取得�
 ```text
 open_meteo.py  → API通信とレスポンス検証
 sunset_window.py → 日没前後の時間を選ぶ
-scoring.py → Gradient / Dramaticを採点（次段階）
+scoring.py → Gradient / Dramaticを採点
 ```
 
 ## 取得する変数
@@ -36,18 +36,69 @@ scoring.py → Gradient / Dramaticを採点（次段階）
 
 日没時刻と予報時刻はタイムゾーン付きで受け取り、`Asia/Tokyo`に変換して比較・出力します。Open-Meteoが返すJSTのローカル時刻には取得時に`Asia/Tokyo`を付与します。必要な正時の予報が1つでもない場合、重複する場合、正時でない値が混じる場合は、補間や代用をせず`SunsetWindowError`を返します。
 
+## 採点ルール
+
+選択済みの日没時間帯に含まれる各時間の値を変数ごとに算術平均し、次のルールで0〜1に正規化します。閾値の外側は0または1に収めます。
+
+| 気象要素 | 正規化方法 | 0になる条件 | 1になる条件 |
+| --- | --- | ---: | ---: |
+| 低層雲量 | `(100 − 雲量) / 100` | 100% | 0% |
+| 中層雲量 | `雲量 / 100` | 0% | 100% |
+| 高層雲量 | `雲量 / 100` | 0% | 100% |
+| 総雲量 | `(100 − 雲量) / 100` | 100% | 0% |
+| 視程 | `(視程 − 5 km) / 20 km` | 5 km以下 | 25 km以上 |
+| 相対湿度 | `(90 − 湿度) / 50` | 90%以上 | 40%以下 |
+| 降水量 | `1 − 降水量 / 1 mm` | 1 mm以上 | 0 mm |
+| 風速 | `(15 − 風速) / 10` | 15 km/h以上 | 5 km/h以下 |
+
+正規化値が大きいことは、必ずしも高得点を意味しません。`Dramatic`の中層雲・高層雲・総雲量には、適量で最大となり、少なすぎても多すぎても低下する評価を適用します。
+
+`Gradient`は雲が少なく透明感のある空を評価します。各正規化値に以下の最大点を掛け、合計を四捨五入します。
+
+| 要因 | 最大点 |
+| --- | ---: |
+| 低層雲が少ない | 30 |
+| 総雲量が少ない | 15 |
+| 視程が良い | 20 |
+| 湿度が低い | 10 |
+| 降水がない | 20 |
+| 風が強くない | 5 |
+
+`Dramatic`は中層・高層雲が適量ある空を評価します。雲量は、少なすぎても多すぎても点が下がる台形型のルールです。中層雲は30〜60%、高層雲は35〜70%、総雲量は30〜70%で満点になります。中層・高層雲は5%以下または95%以上、総雲量は10%以下または95%以上で0点となり、その間は線形に変化します。
+
+| 要因 | 最大点 |
+| --- | ---: |
+| 低層雲が少ない | 20 |
+| 中層雲が適量 | 20 |
+| 高層雲が適量 | 20 |
+| 総雲量が適量 | 10 |
+| 視程が良い | 10 |
+| 降水がない | 15 |
+| 湿度が低い | 3 |
+| 風が強くない | 2 |
+
+両スコアとも0〜100に制限します。要因ごとの実得点と最大点を`ScoreFactor`として保持し、最大点の70%以上を得た要因を主な加点要因、30%以下の要因を主な減点要因として結果に含めます。これにより、快晴は`Gradient`には有利ですが、中層・高層雲の点が得られないため`Dramatic`が常に高得点にはなりません。
+
 ## 利用方法
 
+日没時刻は、天文計算を担当する呼び出し側からタイムゾーン付きの`datetime`として渡します。
+
 ```python
+from datetime import datetime
+
 from weather.scripts.open_meteo import OpenMeteoError, fetch_today_forecast
+from weather.scripts.scoring import WeatherScoringError, score_weather
 from weather.scripts.sunset_window import SunsetWindowError, select_sunset_window
 
-try:
-    hours = fetch_today_forecast(35.6812, 139.7671)
-    window = select_sunset_window(sunset, hours)
-except (OpenMeteoError, SunsetWindowError) as error:
-    # 取得失敗や必要な時間の欠落時は採点しない
-    print(error)
+def evaluate_sunset(latitude: float, longitude: float, sunset: datetime):
+    try:
+        hours = fetch_today_forecast(latitude, longitude)
+        window = select_sunset_window(sunset, hours)
+        return score_weather(window.hours)
+    except (OpenMeteoError, SunsetWindowError, WeatherScoringError) as error:
+        # 取得失敗や必要な時間の欠落時は採点しない
+        print(error)
+        return None
 ```
 
 テストは`weather/tests/fixtures/open_meteo_forecast.json`を使用し、実際のOpen-Meteo APIへ接続しません。
