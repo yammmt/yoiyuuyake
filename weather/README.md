@@ -1,11 +1,12 @@
 # 気象予報モジュール
 
-Open-Meteoから、夕焼け評価に必要な今日の時間別予報を取得します。API通信、日没前後の抽出、スコア計算は分離します。
+Open-Meteoから、夕焼け評価に必要な今日の時間別予報を取得します。API通信、日没前後の抽出、スコア計算は分離し、外部からは一つの統合関数として利用できます。
 
 ```text
 open_meteo.py  → API通信とレスポンス検証
 sunset_window.py → 日没前後の時間を選ぶ
 scoring.py → Gradient / Dramaticを採点
+evaluation.py → 取得・抽出・採点を統合する外部インターフェース
 ```
 
 ## 取得する変数
@@ -81,25 +82,37 @@ scoring.py → Gradient / Dramaticを採点
 
 ## 利用方法
 
-日没時刻は、天文計算を担当する呼び出し側からタイムゾーン付きの`datetime`として渡します。
+日没時刻は、天文計算を担当する呼び出し側から、日本時間で今日の日付となるタイムゾーン付きの`datetime`として渡します。
 
 ```python
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
-from weather.scripts.open_meteo import OpenMeteoError, fetch_today_forecast
-from weather.scripts.scoring import WeatherScoringError, score_weather
-from weather.scripts.sunset_window import SunsetWindowError, select_sunset_window
+from terrain.scripts.astronomy import sunset_on
+from weather.scripts.evaluation import (
+    WeatherEvaluationError,
+    evaluate_sunset_weather,
+)
 
-def evaluate_sunset(latitude: float, longitude: float, sunset: datetime):
-    try:
-        hours = fetch_today_forecast(latitude, longitude)
-        window = select_sunset_window(sunset, hours)
-        return score_weather(window.hours)
-    except (OpenMeteoError, SunsetWindowError, WeatherScoringError) as error:
-        # 取得失敗や必要な時間の欠落時は採点しない
-        print(error)
-        return None
+latitude = 35.625
+longitude = 139.75
+today_jst = datetime.now(ZoneInfo("Asia/Tokyo")).date()
+sunset = sunset_on(today_jst, latitude, longitude).time
+
+try:
+    result = evaluate_sunset_weather(latitude, longitude, sunset)
+    print(result.gradient.score, result.dramatic.score)
+except WeatherEvaluationError as error:
+    # codeで入力不正・取得失敗・データ不足・採点不能を区別できる
+    print(error.code.value, error)
 ```
+
+`SunsetWeatherEvaluation`は、地点、JSTに正規化した日没時刻と見頃の開始・終了、`Gradient` / `Dramatic`の点数・加減点要因を返します。エラー時は結果を返さず、`WeatherEvaluationError.code`が次のいずれかになります。
+
+- `invalid_input`: 緯度・経度または日没日時が不正
+- `forecast_fetch_failed`: Open-Meteoの通信・応答・値の検証に失敗
+- `forecast_data_insufficient`: 日没前後に必要な正時の予報が不足・重複
+- `scoring_failed`: 完全な採点結果を計算できない
 
 テストは`weather/tests/fixtures/open_meteo_forecast.json`を使用し、実際のOpen-Meteo APIへ接続しません。
 
