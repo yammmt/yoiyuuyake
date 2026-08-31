@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from horizon import HorizonProfile, RayHorizon
+try:
+    from .horizon import HorizonProfile, RayHorizon
+except ImportError:  # Direct execution from terrain/scripts.
+    from horizon import HorizonProfile, RayHorizon
 
 WIDE_HORIZON_DEGREES = 1.0
 PARTIALLY_BLOCKED_HORIZON_DEGREES = 4.0
