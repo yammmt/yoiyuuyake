@@ -31,13 +31,14 @@ MVPに向けて、地点の夕焼けを評価するための部品を次のよ�
 
 ```text
 site/       React / Cloudflare Worker のWebアプリ基盤（Google Mapでの地点指定まで実装済み）
+api/        日没・気象・地形をまとめて返すローカルPython API
 terrain/    国土地理院DEM、日没の天文計算、地形視界のローカル検証
 weather/    Open-Meteoの時間別予報の取得・検証
 docs/       MVP仕様、判断記録、UI参照
 gsi/        Git管理外の国土地理院DEM元データ・変換済みタイル
 ```
 
-`terrain/`は、緯度・経度・対象日から日没時刻と方位を計算し、DEM上の西空の地平線を評価する。建物・樹木は考慮しない。`weather/`は、JMA系モデルを優先してOpen-Meteoから低・中・高層雲量、視程、湿度、降水、風速を取得し、日没前後を抽出して`Gradient` / `Dramatic`を採点する。地形・気象処理のReactアプリへの統合はこれから行う。
+`terrain/`は、緯度・経度・対象日から日没時刻と方位を計算し、DEM上の西空の地平線を評価する。建物・樹木は考慮しない。`weather/`は、JMA系モデルを優先してOpen-Meteoから低・中・高層雲量、視程、湿度、降水、風速を取得し、日没前後を抽出して`Gradient` / `Dramatic`を採点する。`api/`はこれらを統合し、完全な結果だけをローカルHTTP APIから返す。
 
 ## ローカルでの確認
 
@@ -88,9 +89,20 @@ APIの制限: Maps JavaScript API のみ
 
 キーはGit管理せず、上記コマンドで起動したターミナルにだけ渡す。終了後は`unset VITE_GOOGLE_MAPS_API_KEY`で削除する。
 
+### ローカル統合API
+
+変換済みDEMを指定して起動する。
+
+```bash
+python3 api/server.py --data gsi/derived-v1m
+```
+
+`GET http://127.0.0.1:8787/api/forecast?lat=35.6812&lng=139.7671` で、その地点の今日の日没、見頃、気象スコア、地形視界を一括取得できる。詳しいJSON契約とエラーは [api/README.md](api/README.md) を参照する。
+
 ## 検証
 
 ```bash
+python3 -m unittest discover -s api/tests
 python3 -m unittest discover -s terrain/tests
 python3 -m unittest discover -s weather/tests
 
