@@ -6,7 +6,10 @@ import math
 from dataclasses import dataclass
 from typing import Protocol
 
-from dem_store import ElevationSample
+try:
+    from .dem_store import ElevationSample
+except ImportError:  # Direct execution from terrain/scripts.
+    from dem_store import ElevationSample
 
 EARTH_RADIUS_METERS = 6_371_008.8
 
