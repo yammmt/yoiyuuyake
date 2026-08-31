@@ -16,6 +16,8 @@ npm run dev
 npm run build
 ```
 
+`npm run dev` では、地点選択後にローカル統合 API (`http://127.0.0.1:8787`) を呼び出します。別の URL を使う場合は `VITE_FORECAST_API_URL` で指定してください。API の起動方法は [`../api/README.md`](../api/README.md) を参照してください。
+
 This starter does not use `wrangler.jsonc`.
 
 ## Included Shape

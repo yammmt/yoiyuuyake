@@ -32,6 +32,8 @@ test("server-renders the Yuyake Finder point picker", async () => {
   assert.match(html, /今夜の空を、指定地点で確かめる。/);
   assert.match(html, /地図をクリックしてください/);
   assert.match(html, /まだ地点が選択されていません。/);
+  assert.match(html, /地点を選ぶと、今日の夕焼け評価を表示します。/);
+  assert.doesNotMatch(html, /\/ 100/);
 });
 
 test("shows a safe fallback when the Google Maps key is absent", async () => {
