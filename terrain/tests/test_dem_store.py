@@ -8,7 +8,12 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parents[1] / "scripts"))
-from dem_store import DemDataUnavailableError, DemNoElevationError, LocalDemStore  # noqa: E402
+from dem_store import (  # noqa: E402
+    DemNoElevationError,
+    DemOutOfCoverageError,
+    DemTileReadError,
+    LocalDemStore,
+)
 
 
 class LocalDemStoreTests(unittest.TestCase):
@@ -16,7 +21,9 @@ class LocalDemStoreTests(unittest.TestCase):
         self.temporary_directory = tempfile.TemporaryDirectory()
         self.root = Path(self.temporary_directory.name)
         (self.root / "tiles").mkdir()
-        (self.root / "tiles" / "demo.dem").write_bytes(struct.pack("<4h", 12, 23, -32768, 45))
+        (self.root / "tiles" / "demo.dem").write_bytes(
+            struct.pack("<4h", 12, 23, -32768, 45)
+        )
         (self.root / "index.json").write_text(json.dumps({
             "format_version": 1,
             "missing_value": -32768,
@@ -55,8 +62,14 @@ class LocalDemStoreTests(unittest.TestCase):
             self.store.elevation_at(35.01, 139.01)
 
     def test_reports_coordinates_outside_the_prepared_area(self) -> None:
-        with self.assertRaises(DemDataUnavailableError):
+        with self.assertRaises(DemOutOfCoverageError):
             self.store.elevation_at(34.9, 139.01)
+
+    def test_reports_a_truncated_tile_separately_from_out_of_coverage(self) -> None:
+        (self.root / "tiles" / "demo.dem").write_bytes(struct.pack("<h", 12))
+
+        with self.assertRaises(DemTileReadError):
+            self.store.elevation_at(35.01, 139.19)
 
 
 if __name__ == "__main__":
