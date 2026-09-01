@@ -30,7 +30,7 @@
 MVPに向けて、地点の夕焼けを評価するための部品を次のように分けている。
 
 ```text
-site/       React / Cloudflare Worker のWebアプリ基盤（Google Mapでの地点指定まで実装済み）
+site/       React / Cloudflare Worker のWebアプリ（地点指定と夕焼け評価の表示）
 api/        日没・気象・地形をまとめて返すローカルPython API
 terrain/    国土地理院DEM、日没の天文計算、地形視界のローカル検証
 weather/    Open-Meteoの時間別予報の取得・検証
@@ -62,7 +62,15 @@ python3 terrain/scripts/serve_terrain.py --data gsi/derived-v1m
 
 ### MVPのWebアプリ
 
-Node.js 22.13以降を用いる。
+Python 3.13以降とNode.js 22.13以降を用いる。siteはローカル統合APIを呼び出すため、2つのターミナルで両方を起動する。
+
+ターミナル1で、リポジトリ直下から統合APIを起動する。
+
+```bash
+python3 api/server.py --data gsi/derived-v1m
+```
+
+ターミナル2で、リポジトリ直下からsiteを起動する。
 
 ```bash
 read -s "VITE_GOOGLE_MAPS_API_KEY?Google Maps API key: "
@@ -74,7 +82,7 @@ npm ci
 npm run dev
 ```
 
-表示先のURLは起動時に表示される。Google Mapをクリックすると、予報対象の緯度・経度を選択できる。公開時は`npm run build`の成果物をWorkerへデプロイする。地形・気象処理とは未接続である。
+表示先のURLは起動時に表示される。Google Mapをクリックすると、選択地点の日没、見頃、気象スコア、地形視界を統合APIから取得して表示する。公開時は`npm run build`の成果物をWorkerへデプロイする。
 
 Google Cloudでは、`Maps JavaScript API`だけを有効化したブラウザ用キーを作る。キーには次の制限を設定する。
 

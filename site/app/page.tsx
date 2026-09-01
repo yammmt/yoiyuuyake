@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-
-type Coordinates = { lat: number; lng: number };
+import { useCallback, useEffect, useRef, useState } from "react";
+import { LatestForecastLoader, type Coordinates, type Forecast, type Score } from "./forecast";
 
 type MapClickEvent = {
   latLng?: { lat(): number; lng(): number };
@@ -48,6 +47,7 @@ const GOOGLE_MAPS_SCRIPT_ID = "google-maps-javascript-api";
 const INITIAL_CENTER = { lat: 35.681236, lng: 139.767125 };
 const JAPAN_BOUNDS = { north: 46.2, south: 20.1, east: 154.0, west: 122.4 };
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+const FORECAST_API_URL = import.meta.env.VITE_FORECAST_API_URL ?? "http://127.0.0.1:8787";
 
 function loadGoogleMaps(apiKey: string): Promise<GoogleMapsApi> {
   if (window.google?.maps) {
@@ -105,6 +105,46 @@ function formatCoordinate(value: number) {
   return value.toFixed(6);
 }
 
+function formatTime(value: string) {
+  return new Intl.DateTimeFormat("ja-JP", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Tokyo",
+  }).format(new Date(value));
+}
+
+function ScoreCard({ kind, label, score }: { kind: "gradient" | "dramatic"; label: string; score: Score }) {
+  const factors = [...score.positive_factors, ...score.negative_factors];
+  return (
+    <article className={`score-card ${kind}`}>
+      <div className="score-heading"><h3>{label}</h3><strong>{score.score}<small> / 100</small></strong></div>
+      {factors.length > 0 && <p>{factors.join(" ・ ")}</p>}
+    </article>
+  );
+}
+
+function ForecastResult({ forecast }: { forecast: Forecast }) {
+  return (
+    <section className="forecast-result" aria-label="今日の夕焼け評価">
+      <div className="sunset-summary">
+        <div><p className="section-label">今日の日没</p><strong>{formatTime(forecast.sunset.time)}</strong></div>
+        <div><p className="section-label">見頃の目安</p><strong>{formatTime(forecast.sunset.viewing_window.starts_at)}〜{formatTime(forecast.sunset.viewing_window.ends_at)}</strong></div>
+      </div>
+      <div className="score-grid">
+        <ScoreCard kind="gradient" label="Gradient" score={forecast.weather.gradient} />
+        <ScoreCard kind="dramatic" label="Dramatic" score={forecast.weather.dramatic} />
+      </div>
+      <article className="terrain-result">
+        <p className="section-label">地形上の西空の視界</p>
+        <strong>{forecast.terrain.visibility}</strong>
+        <p>{forecast.terrain.description}</p>
+      </article>
+      <p className="terrain-notice">{forecast.notice}</p>
+    </section>
+  );
+}
+
 export default function Home() {
   const mapElement = useRef<HTMLDivElement>(null);
   const marker = useRef<GoogleMarker | null>(null);
@@ -112,6 +152,31 @@ export default function Home() {
   const [mapStatus, setMapStatus] = useState<"loading" | "ready" | "error" | "missing-key">(
     GOOGLE_MAPS_API_KEY ? "loading" : "missing-key",
   );
+  const [forecast, setForecast] = useState<Forecast | null>(null);
+  const [forecastStatus, setForecastStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [forecastError, setForecastError] = useState("");
+  const forecastLoader = useRef<LatestForecastLoader | null>(null);
+  if (forecastLoader.current === null) {
+    forecastLoader.current = new LatestForecastLoader(FORECAST_API_URL);
+  }
+
+  const requestForecast = useCallback((nextCoordinates: Coordinates) => {
+    setCoordinates(nextCoordinates);
+    setForecast(null);
+    setForecastError("");
+    setForecastStatus("loading");
+
+    forecastLoader.current?.request(nextCoordinates, {
+      onSuccess(result) {
+        setForecast(result);
+        setForecastStatus("success");
+      },
+      onError(error) {
+        setForecastError(error instanceof Error ? error.message : "予報を取得できませんでした。");
+        setForecastStatus("error");
+      },
+    });
+  }, []);
 
   useEffect(() => {
     if (!GOOGLE_MAPS_API_KEY) return;
@@ -140,7 +205,7 @@ export default function Home() {
           } else {
             marker.current = new maps.Marker({ map, position: nextCoordinates, title: "予報する地点" });
           }
-          setCoordinates(nextCoordinates);
+          requestForecast(nextCoordinates);
         });
         setMapStatus("ready");
       })
@@ -152,8 +217,9 @@ export default function Home() {
       cancelled = true;
       marker.current?.setMap(null);
       marker.current = null;
+      forecastLoader.current?.abort();
     };
-  }, []);
+  }, [requestForecast]);
 
   return (
     <main className="app-shell">
@@ -184,7 +250,22 @@ export default function Home() {
             ) : <p className="empty-state">まだ地点が選択されていません。</p>}
           </section>
 
-          <p className="terrain-notice">見晴らしは地形を考慮した推定です。建物・樹木などの遮蔽物は考慮していません。</p>
+          <div className="forecast-panel" aria-live="polite" aria-busy={forecastStatus === "loading"}>
+            {forecastStatus === "idle" && <p className="forecast-prompt">地点を選ぶと、今日の夕焼け評価を表示します。</p>}
+            {forecastStatus === "loading" && <p className="forecast-loading" role="status">気象と地形を評価しています…</p>}
+            {forecastStatus === "error" && (
+              <div className="forecast-error" role="alert">
+                <strong>予報を表示できません</strong>
+                <p>{forecastError}</p>
+                <button type="button" onClick={() => coordinates && requestForecast(coordinates)}>再試行</button>
+              </div>
+            )}
+            {forecastStatus === "success" && forecast && <ForecastResult forecast={forecast} />}
+          </div>
+
+          {!(forecastStatus === "success" && forecast) && (
+            <p className="terrain-notice">見晴らしは地形を考慮した推定です。建物・樹木などの遮蔽物は考慮していません。</p>
+          )}
         </aside>
 
         <section className="map-card" aria-label="日本地図">
