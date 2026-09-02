@@ -1,8 +1,15 @@
 {
-  "description": "DEM10B（現在の首都圏抽出範囲）に対する回帰検証地点。実景との照合結果ではなく、計算結果の変化を検出するための基準。",
+  "description": "全国DEM10Bに対する回帰検証地点。実景との照合結果ではなく、計算結果と欠損時の失敗動作の変化を検出するための基準。",
   "locations": [
+    {"id": "asahikawa", "latitude": 43.7706, "longitude": 142.365, "azimuth": 270, "expected_label": "一部遮られる", "expected_angle": 2.091, "tolerance": 0.1},
+    {"id": "morioka", "latitude": 39.7036, "longitude": 141.1527, "azimuth": 270, "expected_label": "一部遮られる", "expected_angle": 2.823, "tolerance": 0.1},
     {"id": "tokyo-station", "latitude": 35.6812, "longitude": 139.7671, "azimuth": 270, "expected_label": "広い", "expected_angle": 0.951, "tolerance": 0.1},
-    {"id": "otsuki", "latitude": 35.6105, "longitude": 138.9408, "azimuth": 270, "expected_label": "遮られやすい", "expected_angle": 9.594, "tolerance": 0.1},
-    {"id": "hakone-boundary", "latitude": 35.2324, "longitude": 139.1069, "azimuth": 270, "expected_error": "DemOutOfCoverageError"}
+    {"id": "nagano", "latitude": 36.6486, "longitude": 138.1948, "azimuth": 270, "expected_label": "遮られやすい", "expected_angle": 7.787, "tolerance": 0.1},
+    {"id": "kyoto", "latitude": 35.0116, "longitude": 135.7681, "azimuth": 270, "expected_label": "一部遮られる", "expected_angle": 3.255, "tolerance": 0.1},
+    {"id": "tsuyama", "latitude": 35.0691, "longitude": 134.0045, "azimuth": 270, "expected_label": "一部遮られる", "expected_angle": 2.714, "tolerance": 0.1},
+    {"id": "central-shikoku", "latitude": 33.876, "longitude": 133.758, "azimuth": 270, "expected_error": "DemNoElevationError", "expected_role": "ray"},
+    {"id": "hita", "latitude": 33.3213, "longitude": 130.9412, "azimuth": 270, "expected_label": "一部遮られる", "expected_angle": 2.471, "tolerance": 0.1},
+    {"id": "naha", "latitude": 26.2124, "longitude": 127.6809, "azimuth": 270, "expected_error": "DemNoElevationError", "expected_role": "ray"},
+    {"id": "ishigaki", "latitude": 24.3448, "longitude": 124.1572, "azimuth": 270, "expected_error": "DemNoElevationError", "expected_role": "ray"}
   ]
 }
