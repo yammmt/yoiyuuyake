@@ -40,9 +40,10 @@ def make_handler(dem_root: Path) -> type[BaseHTTPRequestHandler]:
                 latitude, longitude = _parse_coordinates(parsed.query)
                 result = evaluate_location(latitude, longitude, dem_root=dem_root)
             except ApiError as error:
-                self._send_error(
-                    ERROR_STATUSES[error.code], error.code.value, str(error)
-                )
+                payload = {"code": error.code.value, "message": str(error)}
+                if error.reason is not None:
+                    payload["reason"] = error.reason.value
+                self._send_json(ERROR_STATUSES[error.code], {"error": payload})
                 return
 
             self._send_json(HTTPStatus.OK, result)

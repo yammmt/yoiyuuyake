@@ -3,7 +3,7 @@
 from __future__ import annotations
 import argparse, json
 from pathlib import Path
-from dem_store import DemDataUnavailableError, DemNoElevationError, LocalDemStore
+from dem_store import DemError, LocalDemStore
 from horizon import calculate_horizon
 from visibility import assess_visibility
 
@@ -23,7 +23,7 @@ def main() -> None:
                 elif assessment.label != case["expected_label"] or abs(assessment.maximum_horizon_angle_degrees-case["expected_angle"]) > case["tolerance"]:
                     failures.append(f"{case['id']}: got {assessment.label} {assessment.maximum_horizon_angle_degrees:.3f}°")
                 else: print(f"PASS {case['id']}: {assessment.label} {assessment.maximum_horizon_angle_degrees:.3f}°")
-            except (DemDataUnavailableError, DemNoElevationError) as error:
+            except DemError as error:
                 if type(error).__name__ == case.get("expected_error"):
                     print(f"PASS {case['id']}: {type(error).__name__}")
                 else: failures.append(f"{case['id']}: {type(error).__name__}: {error}")

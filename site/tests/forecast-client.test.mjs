@@ -79,9 +79,15 @@ test("does not expose incomplete or failed evaluations", async () => {
       "http://127.0.0.1:8787",
       { lat: 35, lng: 139 },
       new AbortController().signal,
-      async () => Response.json({ error: { code: "dem_unavailable", message: "DEMを利用できません" } }, { status: 503 }),
+      async () => Response.json({
+        error: {
+          code: "dem_unavailable",
+          reason: "ray_out_of_coverage",
+          message: "日没方向が地形データ対象範囲を越えるため、別の地点を選択してください。",
+        },
+      }, { status: 503 }),
     ),
-    /DEMを利用できません/,
+    /別の地点を選択してください/,
   );
 });
 

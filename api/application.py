@@ -12,8 +12,10 @@ from zoneinfo import ZoneInfo
 
 from terrain.scripts.astronomy import solar_position, sunset_on
 from terrain.scripts.dem_store import (
-    DemDataUnavailableError,
+    DemError,
     DemNoElevationError,
+    DemOutOfCoverageError,
+    DemSampleRole,
     LocalDemStore,
 )
 from terrain.scripts.horizon import HorizonProfile, calculate_horizon
@@ -42,12 +44,30 @@ class ApiErrorCode(str, Enum):
     DEM_UNAVAILABLE = "dem_unavailable"
 
 
+class ApiErrorReason(str, Enum):
+    """Stable diagnostic reasons for unavailable terrain evaluations."""
+
+    OBSERVER_NO_ELEVATION = "observer_no_elevation"
+    OBSERVER_OUT_OF_COVERAGE = "observer_out_of_coverage"
+    RAY_NO_ELEVATION = "ray_no_elevation"
+    RAY_OUT_OF_COVERAGE = "ray_out_of_coverage"
+    DEM_DATA_UNAVAILABLE = "dem_data_unavailable"
+    TERRAIN_CALCULATION_FAILED = "terrain_calculation_failed"
+
+
 class ApiError(RuntimeError):
     """Raised when a complete integrated result cannot be returned."""
 
-    def __init__(self, code: ApiErrorCode, message: str):
+    def __init__(
+        self,
+        code: ApiErrorCode,
+        message: str,
+        *,
+        reason: ApiErrorReason | None = None,
+    ):
         super().__init__(message)
         self.code = code
+        self.reason = reason
 
 
 def evaluate_location(
@@ -77,15 +97,28 @@ def evaluate_location(
     store: LocalDemStore | None = None
     try:
         store = LocalDemStore(Path(dem_root))
+    except (KeyError, OSError, TypeError, ValueError) as error:
+        raise _terrain_api_error(
+            ApiErrorReason.DEM_DATA_UNAVAILABLE,
+            "地形データを利用できません。時間をおいて再試行してください。",
+        ) from error
+
+    try:
         profile = horizon_calculator(
             store, latitude, longitude, sunset.azimuth_degrees
         )
         visibility = assess_visibility(profile, comparison_sun.altitude_degrees)
-    except (DemDataUnavailableError, DemNoElevationError) as error:
-        raise ApiError(ApiErrorCode.DEM_UNAVAILABLE, str(error)) from error
-    except (KeyError, OSError, TypeError, ValueError) as error:
-        raise ApiError(
-            ApiErrorCode.DEM_UNAVAILABLE, "地形データを利用できません"
+    except DemError as error:
+        raise _dem_api_error(error) from error
+    except (KeyError, OSError) as error:
+        raise _terrain_api_error(
+            ApiErrorReason.DEM_DATA_UNAVAILABLE,
+            "地形データを利用できません。時間をおいて再試行してください。",
+        ) from error
+    except (TypeError, ValueError) as error:
+        raise _terrain_api_error(
+            ApiErrorReason.TERRAIN_CALCULATION_FAILED,
+            "地形評価中にエラーが発生しました。時間をおいて再試行してください。",
         ) from error
     finally:
         if store is not None:
@@ -101,6 +134,40 @@ def evaluate_location(
     return _result_to_dict(
         latitude, longitude, sunset.azimuth_degrees, weather, profile, visibility
     )
+
+
+def _dem_api_error(error: DemError) -> ApiError:
+    role = error.sample_context.role if error.sample_context is not None else None
+    if isinstance(error, DemNoElevationError):
+        if role == DemSampleRole.OBSERVER:
+            return _terrain_api_error(
+                ApiErrorReason.OBSERVER_NO_ELEVATION,
+                "選択地点の標高データがないため、地形を評価できません。少し離れた地点を選択してください。",
+            )
+        if role == DemSampleRole.RAY:
+            return _terrain_api_error(
+                ApiErrorReason.RAY_NO_ELEVATION,
+                "日没方向の地形データが不足しているため、見晴らしを評価できません。別の地点を選択してください。",
+            )
+    if isinstance(error, DemOutOfCoverageError):
+        if role == DemSampleRole.OBSERVER:
+            return _terrain_api_error(
+                ApiErrorReason.OBSERVER_OUT_OF_COVERAGE,
+                "選択地点は現在の地形データ対象範囲外です。別の地点を選択してください。",
+            )
+        if role == DemSampleRole.RAY:
+            return _terrain_api_error(
+                ApiErrorReason.RAY_OUT_OF_COVERAGE,
+                "日没方向が地形データ対象範囲を越えるため、見晴らしを評価できません。別の地点を選択してください。",
+            )
+    return _terrain_api_error(
+        ApiErrorReason.DEM_DATA_UNAVAILABLE,
+        "地形データを利用できません。時間をおいて再試行してください。",
+    )
+
+
+def _terrain_api_error(reason: ApiErrorReason, message: str) -> ApiError:
+    return ApiError(ApiErrorCode.DEM_UNAVAILABLE, message, reason=reason)
 
 
 def _validate_coordinates(latitude: float, longitude: float) -> tuple[float, float]:

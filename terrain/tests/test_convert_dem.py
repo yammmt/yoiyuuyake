@@ -8,7 +8,11 @@ import zipfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parents[1] / "scripts"))
-from convert_dem import NODATA_OUTPUT, convert_archive, parse_gml  # noqa: E402
+from convert_dem import (  # noqa: E402
+    NODATA_OUTPUT,
+    convert_archive,
+    parse_gml,
+)
 
 
 GML = b'''<?xml version="1.0" encoding="UTF-8"?>

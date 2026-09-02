@@ -69,17 +69,31 @@ GET /api/forecast?lat=35.6812&lng=139.7671
 ```json
 {
   "error": {
-    "code": "weather_unavailable",
-    "message": "気象予報を利用できません"
+    "code": "dem_unavailable",
+    "reason": "ray_out_of_coverage",
+    "message": "日没方向が地形データ対象範囲を越えるため、見晴らしを評価できません。別の地点を選択してください。"
   }
 }
 ```
+
+`reason` は `dem_unavailable` の場合に付加し、利用者向けメッセージより詳細な原因を安定した値で示します。
 
 | HTTP | `code` | 意味 |
 | ---: | --- | --- |
 | 400 | `invalid_input` | 座標の欠落・重複・形式・日本国内の範囲が不正 |
 | 502 | `weather_unavailable` | Open-Meteo の取得、必要時間の不足、採点のいずれかに失敗 |
 | 503 | `dem_unavailable` | DEM の未配置、破損、範囲外、標高欠損のいずれか |
+
+| `reason` | 意味 | 利用者への案内 |
+| --- | --- | --- |
+| `observer_no_elevation` | 観測地点の標高が欠損 | 少し離れた地点を選択 |
+| `observer_out_of_coverage` | 観測地点が準備済みDEM範囲外 | 別地点を選択 |
+| `ray_no_elevation` | レイ途中の標高が欠損 | 別地点を選択 |
+| `ray_out_of_coverage` | レイが準備済みDEM範囲外へ出る | 別地点を選択 |
+| `dem_data_unavailable` | DEMの未配置・インデックス異常・タイル欠落または破損 | 時間をおいて再試行 |
+| `terrain_calculation_failed` | 地形計算自体が失敗 | 時間をおいて再試行 |
+
+DEM10Bでは海上と陸上のデータ欠損を区別できないため、どちらも `observer_no_elevation` または `ray_no_elevation` として扱います。
 
 レスポンスはキャッシュされず、ローカルで起動した site から呼べるよう GET と OPTIONS に CORS ヘッダーを付けています。
 

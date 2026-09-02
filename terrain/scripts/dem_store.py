@@ -7,15 +7,48 @@ import math
 import struct
 from collections import OrderedDict
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from typing import BinaryIO
 
 
-class DemDataUnavailableError(RuntimeError):
-    """Raised when the requested coordinate is outside the prepared DEM coverage."""
+class DemSampleRole(str, Enum):
+    """Where an elevation lookup was used in a horizon calculation."""
+
+    OBSERVER = "observer"
+    RAY = "ray"
 
 
-class DemNoElevationError(RuntimeError):
+@dataclass(frozen=True)
+class DemSampleContext:
+    """Diagnostic context attached without changing the public error message."""
+
+    role: DemSampleRole
+    latitude: float
+    longitude: float
+    azimuth_degrees: float | None = None
+    distance_meters: int | None = None
+
+
+class DemError(RuntimeError):
+    """Base class for DEM lookup failures."""
+
+    sample_context: DemSampleContext | None = None
+
+
+class DemDataUnavailableError(DemError):
+    """Base class for unavailable DEM coverage or tile data."""
+
+
+class DemOutOfCoverageError(DemDataUnavailableError):
+    """Raised when no prepared tile covers the requested coordinate."""
+
+
+class DemTileReadError(DemDataUnavailableError):
+    """Raised when a prepared tile cannot provide its declared cell."""
+
+
+class DemNoElevationError(DemError):
     """Raised when the DEM tile has no elevation value at the requested coordinate."""
 
 
@@ -45,7 +78,7 @@ class LocalDemStore:
         dem_file.seek(offset)
         raw_value = dem_file.read(2)
         if len(raw_value) != 2:
-            raise DemDataUnavailableError(f"DEM タイルが途中で切れています: {tile['mesh_code']}")
+            raise DemTileReadError(f"DEM タイルが途中で切れています: {tile['mesh_code']}")
         value = struct.unpack("<h", raw_value)[0]
         if value == self.missing_value:
             raise DemNoElevationError("指定地点の標高データがありません")
@@ -68,12 +101,17 @@ class LocalDemStore:
 
     def _find_tile(self, latitude: float, longitude: float) -> dict[str, object]:
         for tile in self.tiles:
-            if tile["south"] <= latitude <= tile["north"] and tile["west"] <= longitude <= tile["east"]:
+            if (
+                tile["south"] <= latitude <= tile["north"]
+                and tile["west"] <= longitude <= tile["east"]
+            ):
                 return tile
-        raise DemDataUnavailableError("指定地点は準備済みの DEM 範囲外です")
+        raise DemOutOfCoverageError("指定地点は準備済みの DEM 範囲外です")
 
     @staticmethod
-    def _grid_position(tile: dict[str, object], latitude: float, longitude: float) -> tuple[int, int]:
+    def _grid_position(
+        tile: dict[str, object], latitude: float, longitude: float
+    ) -> tuple[int, int]:
         latitude_step = (tile["north"] - tile["south"]) / tile["rows"]
         longitude_step = (tile["east"] - tile["west"]) / tile["columns"]
         row = math.floor((tile["north"] - latitude) / latitude_step)
