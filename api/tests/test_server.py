@@ -9,7 +9,7 @@ from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
-from api.application import ApiError, ApiErrorCode
+from api.application import ApiError, ApiErrorCode, ApiErrorReason
 from api.server import make_handler
 
 
@@ -79,6 +79,27 @@ class ApiServerTests(unittest.TestCase):
         with urlopen(request, timeout=2) as response:
             self.assertEqual(response.status, 204)
             self.assertEqual(response.headers["Access-Control-Allow-Methods"], "GET, OPTIONS")
+
+    def test_dem_error_includes_diagnostic_reason(self) -> None:
+        error = ApiError(
+            ApiErrorCode.DEM_UNAVAILABLE,
+            "別の地点を選択してください。",
+            reason=ApiErrorReason.RAY_OUT_OF_COVERAGE,
+        )
+        with patch("api.server.evaluate_location", side_effect=error):
+            status, _headers, body = self.get("/api/forecast?lat=35&lng=139")
+
+        self.assertEqual(status, 503)
+        self.assertEqual(
+            body,
+            {
+                "error": {
+                    "code": "dem_unavailable",
+                    "reason": "ray_out_of_coverage",
+                    "message": "別の地点を選択してください。",
+                }
+            },
+        )
 
 
 if __name__ == "__main__":
