@@ -1,102 +1,55 @@
-# vinext-starter
+# Webアプリ
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+Google Mapsで地点を選び、ローカル統合APIから今日の夕焼け評価を取得して表示する。
 
-## Prerequisites
+## 起動
 
-- Node.js `>=22.13.0`
-
-## Quick Start
+Node.js 22.13以降を使用する。先にリポジトリ直下から統合APIを起動する。
 
 ```bash
-npm install
+python3 api/server.py --data gsi/derived-dem10b-v1
+```
+
+別のターミナルでWebアプリを起動する。
+
+```bash
+cd site
+npm ci
+read -r -s -p "Google Maps API key: " VITE_GOOGLE_MAPS_API_KEY
+echo
+export VITE_GOOGLE_MAPS_API_KEY
 npm run dev
-npm run build
 ```
 
-`npm run dev` では、地点選択後にローカル統合 API (`http://127.0.0.1:8787`) を呼び出します。別の URL を使う場合は `VITE_FORECAST_API_URL` で指定してください。API の起動方法は [`../api/README.md`](../api/README.md) を参照してください。
+既定URLは <http://localhost:3000> である。ポート3000が使用中の場合は、別ポートへ移動せず起動に失敗する。
 
-This starter does not use `wrangler.jsonc`.
+## Google Maps APIキー
 
-## Included Shape
+Google Cloudで`Maps JavaScript API`だけを有効化したブラウザ用キーを作り、次の制限を設定する。
 
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-Signed-in visitors receive both `oai-authenticated-user-id` and `oai-authenticated-user-email`. Private Sites require every visitor to sign in; public Sites may also have anonymous visitors, for whom neither header is present.
-
-The user ID is stable for the same user on the same Site and different across Sites. Email and name are intended for display or contact purposes.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const userId = requestHeaders.get("oai-authenticated-user-id");
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
+```text
+アプリケーションの制限: ウェブサイト
+許可する参照元: http://localhost:3000/*
+                 http://127.0.0.1:3000/*
+APIの制限: Maps JavaScript API のみ
 ```
 
-## Optional Dispatch-Owned ChatGPT Sign-In
+キーはGit管理しない。終了後は`unset VITE_GOOGLE_MAPS_API_KEY`で削除する。
 
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
+## 統合APIのURL
 
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
+既定では <http://127.0.0.1:8787> を呼び出す。APIを別ポートで起動する場合は、Webアプリの起動前にURLを指定する。
 
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
+```bash
+export VITE_FORECAST_API_URL=http://127.0.0.1:8788
+npm run dev
+```
 
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
+## 検証
 
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
+```bash
+npm test
+npm run lint
+```
 
-## Useful Commands
-
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
-
-## Learn More
-
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+本番向け成果物は`npm run build`で生成する。
