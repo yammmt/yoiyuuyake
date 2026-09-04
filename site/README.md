@@ -1,6 +1,6 @@
 # Webアプリ
 
-Google Mapsで地点を選び、ローカル統合APIから今日の夕焼け評価を取得して表示する。
+Google Mapsの地図クリックまたはPlace Autocompleteで地点を選び、ローカル統合APIから今日の夕焼け評価を取得して表示する。
 
 ## 起動
 
@@ -25,13 +25,14 @@ npm run dev
 
 ## Google Maps APIキー
 
-Google Cloudで`Maps JavaScript API`だけを有効化したブラウザ用キーを作り、次の制限を設定する。
+Google Cloudで`Maps JavaScript API`と`Places API (New)`を有効化したブラウザ用キーを作り、次の制限を設定する。
 
 ```text
 アプリケーションの制限: ウェブサイト
 許可する参照元: http://localhost:3000/*
                  http://127.0.0.1:3000/*
-APIの制限: Maps JavaScript API のみ
+APIの制限: Maps JavaScript API
+             Places API (New)
 ```
 
 キーはGit管理しない。終了後は`unset VITE_GOOGLE_MAPS_API_KEY`で削除する。

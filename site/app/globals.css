@@ -12,6 +12,12 @@ h1 { margin-bottom: 0; font-size: clamp(25px, 3.2vw, 42px); letter-spacing: -.04
 .instructions { display: flex; flex-direction: column; padding: 32px; border-right: 1px solid #ebe2de; }
 .instructions h2 { margin: 9px 0 10px; font-size: 21px; letter-spacing: -.03em; }
 .instructions > p:not(.step):not(.terrain-notice) { color: #71656b; font-size: 14px; line-height: 1.72; }
+.place-search { margin-top: 17px; }
+.place-search-widget { min-height: 50px; margin-top: 8px; }
+.place-search-widget > p { margin: 0; padding: 14px; border: 1px solid #e4d9d4; border-radius: 11px; color: #76676d; font-size: 13px; }
+.place-search-mount, .place-search-widget gmp-place-autocomplete { width: 100%; }
+.place-search-widget gmp-place-autocomplete { display: block; color-scheme: light; }
+.place-search-error { margin: 7px 2px 0; color: #9b3d43; font-size: 12px; line-height: 1.5; }
 .selected-place { margin-top: 20px; padding: 18px; border-radius: 15px; background: #fff4ec; }
 .selected-place strong { display: block; margin-top: 8px; font-size: 15px; }
 .selected-place dl { display: grid; gap: 8px; margin: 16px 0 0; }
