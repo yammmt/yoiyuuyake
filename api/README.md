@@ -1,16 +1,17 @@
 # ローカル統合 API
 
-site が地点指定後に一度の呼び出しで今日の夕焼け評価を取得するための、ローカル Python API です。天文計算、Open-Meteo の気象評価、ローカル DEM の地形評価がすべて成功した場合にだけ結果を返します。
+site が地点指定後に一度の呼び出しで今日の夕焼け評価を取得するための、ローカル Python API である。
+天文計算、Open-Meteo の気象評価、ローカル DEM の地形評価がすべて成功した場合にだけ結果を返す。
 
 ## 起動
 
-Python 3.13 以降と、変換済みの国土地理院 DEM が必要です。
+Python 3.13 以降と、変換済みの国土地理院 DEM が必要である。
 
 ```bash
-python3 api/server.py --data gsi/derived-v1m
+python3 api/server.py --data gsi/derived-dem10b-v1
 ```
 
-サーバーは `127.0.0.1:8787` だけで待ち受けます。別のポートを使う場合は `--port` を指定します。Cloudflare やデータベースなどの外部実行基盤は使用しません。
+サーバーは `127.0.0.1:8787` だけで待ち受ける。別のポートを使う場合は `--port` を指定する。Cloudflare やデータベースなどの外部実行基盤は使用しない。
 
 ## API 契約
 
@@ -18,9 +19,9 @@ python3 api/server.py --data gsi/derived-v1m
 GET /api/forecast?lat=35.6812&lng=139.7671
 ```
 
-`lat` と `lng` はそれぞれ一つだけ必要です。対象は日本国内、日付は API 実行時の日本時間における今日に固定しています。
+`lat` と `lng` はそれぞれ一つだけ必要である。対象は日本国内、日付は API 実行時の日本時間における今日に固定している。
 
-正常時は HTTP 200 と次の形の JSON を返します。
+正常時は HTTP 200 と次の形の JSON を返す。
 
 ```json
 {
@@ -62,9 +63,9 @@ GET /api/forecast?lat=35.6812&lng=139.7671
 }
 ```
 
-時刻は JST の ISO 8601 形式です。地形と太陽高度の比較には日没 10 分前を使います。
+時刻は JST の ISO 8601 形式である。地形と太陽高度の比較には日没 10 分前を使用する。
 
-失敗時は評価結果を一切含めず、次の共通形式を返します。
+失敗時は評価結果を一切含めず、次の共通形式を返す。
 
 ```json
 {
@@ -76,7 +77,7 @@ GET /api/forecast?lat=35.6812&lng=139.7671
 }
 ```
 
-`reason` は `dem_unavailable` の場合に付加し、利用者向けメッセージより詳細な原因を安定した値で示します。
+`reason` は `dem_unavailable` の場合に付加し、利用者向けメッセージより詳細な原因を安定した値で示す。
 
 | HTTP | `code` | 意味 |
 | ---: | --- | --- |
@@ -93,13 +94,13 @@ GET /api/forecast?lat=35.6812&lng=139.7671
 | `dem_data_unavailable` | DEMの未配置・インデックス異常・タイル欠落または破損 | 時間をおいて再試行 |
 | `terrain_calculation_failed` | 地形計算自体が失敗 | 時間をおいて再試行 |
 
-DEM10Bでは海上と陸上のデータ欠損を区別できないため、どちらも `observer_no_elevation` または `ray_no_elevation` として扱います。
+DEM10Bでは海上と陸上のデータ欠損を区別できないため、どちらも `observer_no_elevation` または `ray_no_elevation` として扱う。
 
-レスポンスはキャッシュされず、ローカルで起動した site から呼べるよう GET と OPTIONS に CORS ヘッダーを付けています。
+レスポンスはキャッシュされず、ローカルで起動した site から呼べるよう GET と OPTIONS に CORS ヘッダーを付けている。
 
 ## テスト
 
-外部 API や実際の DEM に依存せず、正常系、入力不正、気象失敗、DEM 失敗、HTTP 契約を検証します。
+外部 API や実際の DEM に依存せず、正常系、入力不正、気象失敗、DEM 失敗、HTTP 契約を検証する。
 
 ```bash
 python3 -m unittest discover -s api/tests

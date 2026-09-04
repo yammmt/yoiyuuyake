@@ -23,91 +23,64 @@
 夏の日に見えがち
 
 ![高彩度例 1](./fig/example_dramatic_01.jpg)
-![高彩度例 1](./fig/example_dramatic_02.jpg)
+![高彩度例 2](./fig/example_dramatic_02.jpg)
 
-## 現在の構成
+## 動くもの
 
-MVPに向けて、地点の夕焼けを評価するための部品を次のように分けている。
+![大きめ画面 GUI](./fig/gui_deskop.png)
+
+## 構成
 
 ```text
-site/       React / Cloudflare Worker のWebアプリ（地点指定と夕焼け評価の表示）
-api/        日没・気象・地形をまとめて返すローカルPython API
-terrain/    国土地理院DEM、日没の天文計算、地形視界のローカル検証
-weather/    Open-Meteoの時間別予報の取得・検証
-docs/       MVP仕様、判断記録、UI参照
-gsi/        Git管理外の国土地理院DEM元データ・変換済みタイル
+site/       地点指定と夕焼け評価を表示するWebアプリ
+api/        日没・気象・地形をまとめるローカルPython API
+terrain/    DEM変換、天文計算、地形視界
+weather/    Open-Meteoの取得と夕焼けスコア
+docs/       MVP仕様、データ準備、判断記録
+gsi/        Git管理外のDEM元データと変換済みタイル
 ```
 
-`terrain/`は、緯度・経度・対象日から日没時刻と方位を計算し、DEM上の西空の地平線を評価する。建物・樹木は考慮しない。`weather/`は、JMA系モデルを優先してOpen-Meteoから低・中・高層雲量、視程、湿度、降水、風速を取得し、日没前後を抽出して`Gradient` / `Dramatic`を採点する。`api/`はこれらを統合し、完全な結果だけをローカルHTTP APIから返す。
+## ローカル起動
 
-## ローカルでの確認
+Python 3.13以降とNode.js 22.13以降を使用する。
 
-### 地形視界のローカル診断
-
-Python 3.13以降を用いる。国土地理院のDEM10Bを`gsi/`へ置き、初回だけ変換する。
+初回だけ、[全国DEM10Bの準備](docs/dem10b-setup.md#検証対象スナップショット)に記載した2026-09-02検証スナップショットの地方区分ZIPを11個取得し、全国データへ変換する。取得、利用条件、容量、検証の詳細も同文書を参照する。
 
 ```bash
 python3 terrain/scripts/convert_dem.py \
-  gsi/20260816184830972-001.zip \
-  --output gsi/derived-v1m
+  gsi/FG-GML-*-DEM10-*.zip \
+  --output gsi/derived-dem10b-v1
+
+python3 terrain/scripts/validate_dataset.py \
+  --data gsi/derived-dem10b-v1 \
+  --expected-tiles 4885
 ```
 
-次のコマンドで、外部サービスを使わない地形確認画面を起動する。これはDEM・天文計算を切り分けて検証するための開発用サーバーであり、MVPの利用画面ではない。
+ターミナル1で統合APIを起動する。
 
 ```bash
-python3 terrain/scripts/serve_terrain.py --data gsi/derived-v1m
+python3 api/server.py --data gsi/derived-dem10b-v1
 ```
 
-ブラウザで <http://127.0.0.1:8787> を開き、緯度・経度・日付を入力する。日没方位と日没10分前の太陽高度は天文計算により自動で求められる。
-
-### MVPのWebアプリ
-
-Python 3.13以降とNode.js 22.13以降を用いる。siteはローカル統合APIを呼び出すため、2つのターミナルで両方を起動する。
-
-ターミナル1で、リポジトリ直下から統合APIを起動する。
+ターミナル2でGoogle Maps APIキーを渡し、Webアプリを起動する。
 
 ```bash
-python3 api/server.py --data gsi/derived-v1m
-```
-
-ターミナル2で、リポジトリ直下からsiteを起動する。
-
-```bash
-read -s "VITE_GOOGLE_MAPS_API_KEY?Google Maps API key: "
-echo
-export VITE_GOOGLE_MAPS_API_KEY
-
 cd site
 npm ci
+read -r -s -p "Google Maps API key: " VITE_GOOGLE_MAPS_API_KEY
+echo
+export VITE_GOOGLE_MAPS_API_KEY
 npm run dev
 ```
 
-表示先のURLは起動時に表示される。Google Mapをクリックすると、選択地点の日没、見頃、気象スコア、地形視界を統合APIから取得して表示する。公開時は`npm run build`の成果物をWorkerへデプロイする。
+Webアプリの既定URLは <http://localhost:3000>、統合APIは <http://127.0.0.1:8787> である。APIキーの制限と別ポートの指定方法は[siteのREADME](site/README.md)を参照する。
 
-Google Cloudでは、`Maps JavaScript API`だけを有効化したブラウザ用キーを作る。キーには次の制限を設定する。
+## 開発と検証
 
-```text
-アプリケーションの制限: ウェブサイト
-許可する参照元: http://localhost:3000/*
-                 http://127.0.0.1:3000/*
-APIの制限: Maps JavaScript API のみ
-```
-
-`npm run dev`はポート3000へ固定している。ポートが使用中の場合は別の番号へ移動せず起動に失敗するため、既存の開発サーバーを終了してから再実行する。
-
-キーはGit管理せず、上記コマンドで起動したターミナルにだけ渡す。終了後は`unset VITE_GOOGLE_MAPS_API_KEY`で削除する。
-
-### ローカル統合API
-
-変換済みDEMを指定して起動する。
-
-```bash
-python3 api/server.py --data gsi/derived-v1m
-```
-
-`GET http://127.0.0.1:8787/api/forecast?lat=35.6812&lng=139.7671` で、その地点の今日の日没、見頃、気象スコア、地形視界を一括取得できる。詳しいJSON契約とエラーは [api/README.md](api/README.md) を参照する。
-
-## 検証
+- [地形エンジン](terrain/README.md)
+- [統合API契約](api/README.md)
+- [Webアプリ](site/README.md)
+- [気象取得とスコア](weather/README.md)
 
 ```bash
 python3 -m unittest discover -s api/tests
@@ -115,7 +88,15 @@ python3 -m unittest discover -s terrain/tests
 python3 -m unittest discover -s weather/tests
 
 cd site
-npm run build
+npm test
 ```
 
 `gsi/`内の元データと変換済みタイル、`site/node_modules/`、`site/.next/`、`site/dist/`などの生成物はGit管理しない。
+
+## データ出典
+
+標高データは国土地理院のものを使用する。
+
+> 出典：[国土地理院「基盤地図情報（数値標高モデル）DEM10B」](https://service.gsi.go.jp/kiban/app/help/)
+>
+> [国土地理院「基盤地図情報（数値標高モデル）DEM10B」](https://service.gsi.go.jp/kiban/app/help/)を加工して作成
