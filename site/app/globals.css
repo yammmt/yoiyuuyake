@@ -2,6 +2,17 @@
 * { box-sizing: border-box; }
 body { min-width: 320px; margin: 0; background: radial-gradient(circle at 75% -20%, #ffddac 0, transparent 30%), #f6f2ef; }
 code { font: inherit; }
+.site-footer { margin-top: 32px; padding-top: 22px; border-top: 1px solid #ded3ce; color: #71656b; font-size: .875rem; line-height: 1.8; overflow-wrap: anywhere; }
+.site-footer h2 { margin-bottom: 10px; color: #51464d; font-size: .875rem; }
+.data-sources { display: grid; gap: 4px; margin: 0 0 10px; padding: 0; list-style: none; }
+.site-footer p { margin-bottom: 12px; }
+.site-footer a { color: #75464f; text-decoration: underline; text-underline-offset: 3px; }
+.site-footer a:hover { color: #503039; }
+.site-footer a:focus-visible, .calculation-details summary:focus-visible { outline: 2px solid #854f54; outline-offset: 4px; border-radius: 2px; }
+.calculation-details summary { width: fit-content; cursor: pointer; color: #51464d; }
+.calculation-details dl { display: grid; gap: 12px; max-width: 80ch; margin: 14px 0 0; }
+.calculation-details dt { color: #51464d; font-weight: 700; }
+.calculation-details dd { margin: 3px 0 0; }
 .app-shell { min-height: 100vh; max-width: 1440px; margin: 0 auto; padding: 42px clamp(20px, 5vw, 72px) 56px; }
 .app-header { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 30px; }
 .eyebrow, .step, .section-label, .map-heading { margin: 0; color: #b45b5c; font-size: 12px; font-weight: 700; letter-spacing: .07em; }

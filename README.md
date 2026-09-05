@@ -108,8 +108,25 @@ npm test
 
 ## データ出典
 
+### 気象データ
+
+気象データはOpen-Meteo Forecast APIのものを使用する。
+
+> 出典：[Open-Meteo](https://open-meteo.com/)（[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)）
+>
+> Open-Meteoの気象予報データを加工し、本アプリ独自のルールで夕焼けスコア（Gradient / Dramatic）を算出
+
+取得モデルと加工方法、利用条件へのリンクは[気象予報モジュールのREADME](weather/README.md#出典)を参照する。
+
+### 標高データ
+
 標高データは国土地理院のものを使用する。
 
 > 出典：[国土地理院「基盤地図情報（数値標高モデル）DEM10B」](https://service.gsi.go.jp/kiban/app/help/)
 >
 > [国土地理院「基盤地図情報（数値標高モデル）DEM10B」](https://service.gsi.go.jp/kiban/app/help/)を加工して作成
+
+### 地図表示・場所検索
+
+地図表示・場所検索には[Google Maps Platform](https://mapsplatform.google.com/)（Maps JavaScript API / Places API (New)）を使用する。
+利用条件・帰属表示については[Googleの公式ポリシー](https://developers.google.com/maps/documentation/javascript/policies)を参照する。
