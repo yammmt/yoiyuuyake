@@ -119,3 +119,15 @@ except WeatherEvaluationError as error:
 ```bash
 python3 -m unittest discover -s weather/tests
 ```
+
+## 出典
+
+> 出典：[Open-Meteo](https://open-meteo.com/)（[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)）
+>
+> Open-Meteoの気象予報データを加工し、本アプリ独自のルールで夕焼けスコア（Gradient / Dramatic）を算出
+
+[Open-Meteo Forecast API](https://open-meteo.com/en/docs)から時間別予報を取得します。JMA Seamlessモデルを優先し、欠損時には上記の取得ルールに従って自動モデル選択へフォールバックします。
+
+日没前後の予報を抽出・平均・正規化して採点しており、夕焼けスコアはOpen-Meteoや気象庁が提供する予報指標ではありません。
+
+データのライセンスはCC BY 4.0です。APIサービスの利用には別途[Open-Meteoの利用規約](https://open-meteo.com/en/terms)が適用されます。

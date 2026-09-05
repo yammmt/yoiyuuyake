@@ -299,73 +299,102 @@ export default function Home() {
   }, [requestForecast]);
 
   return (
-    <main className="app-shell">
-      <header className="app-header">
-        <div>
-          <p className="eyebrow">Yūyake Finder</p>
-          <h1>今夜の空を、指定地点で確かめる。</h1>
-        </div>
-        <p className="today">今日の日没を対象にします</p>
-      </header>
-
-      <section className="picker-layout" aria-label="予報する地点の指定">
-        <aside className="instructions">
-          <p className="step">1 / 1 地点を指定</p>
-          <h2>場所を検索、または地図をクリック</h2>
-          <p>日本国内の地名・施設名・住所を検索して候補を選ぶか、予報したい場所を地図でクリックしてください。</p>
-
-          <div className="place-search">
-            <p className="section-label" id="place-search-label">場所を検索</p>
-            <div className="place-search-widget" aria-labelledby="place-search-label">
-              <div className="place-search-mount" ref={searchElement} />
-              {mapStatus === "loading" && <p>検索を準備しています…</p>}
-              {mapStatus === "missing-key" && <p>検索にはGoogle Maps APIキーが必要です。</p>}
-              {mapStatus === "error" && <p>場所の検索を読み込めませんでした。</p>}
-            </div>
-            {searchError && <p className="place-search-error" role="alert">{searchError}</p>}
+    <div className="app-shell">
+      <main>
+        <header className="app-header">
+          <div>
+            <p className="eyebrow">Yūyake Finder</p>
+            <h1>今夜の空を、指定地点で確かめる。</h1>
           </div>
+          <p className="today">今日の日没を対象にします</p>
+        </header>
 
-          <section className="selected-place" aria-live="polite">
-            <p className="section-label">選択した地点</p>
-            {selectedPlace ? (
-              <>
-                <strong>{selectedPlace.name}</strong>
-                <dl>
-                  <div><dt>緯度</dt><dd>{formatCoordinate(selectedPlace.coordinates.lat)}</dd></div>
-                  <div><dt>経度</dt><dd>{formatCoordinate(selectedPlace.coordinates.lng)}</dd></div>
-                </dl>
-              </>
-            ) : <p className="empty-state">まだ地点が選択されていません。</p>}
-          </section>
+        <section className="picker-layout" aria-label="予報する地点の指定">
+          <aside className="instructions">
+            <p className="step">1 / 1 地点を指定</p>
+            <h2>場所を検索、または地図をクリック</h2>
+            <p>日本国内の地名・施設名・住所を検索して候補を選ぶか、予報したい場所を地図でクリックしてください。</p>
 
-          <div className="forecast-panel" aria-live="polite" aria-busy={forecastStatus === "loading"}>
-            {forecastStatus === "idle" && <p className="forecast-prompt">地点を選ぶと、今日の夕焼け評価を表示します。</p>}
-            {forecastStatus === "loading" && <p className="forecast-loading" role="status">気象と地形を評価しています…</p>}
-            {forecastStatus === "error" && (
-              <div className="forecast-error" role="alert">
-                <strong>予報を表示できません</strong>
-                <p>{forecastError}</p>
-                <button type="button" onClick={() => selectedPlace && requestForecast(selectedPlace.coordinates)}>再試行</button>
+            <div className="place-search">
+              <p className="section-label" id="place-search-label">場所を検索</p>
+              <div className="place-search-widget" aria-labelledby="place-search-label">
+                <div className="place-search-mount" ref={searchElement} />
+                {mapStatus === "loading" && <p>検索を準備しています…</p>}
+                {mapStatus === "missing-key" && <p>検索にはGoogle Maps APIキーが必要です。</p>}
+                {mapStatus === "error" && <p>場所の検索を読み込めませんでした。</p>}
               </div>
+              {searchError && <p className="place-search-error" role="alert">{searchError}</p>}
+            </div>
+
+            <section className="selected-place" aria-live="polite">
+              <p className="section-label">選択した地点</p>
+              {selectedPlace ? (
+                <>
+                  <strong>{selectedPlace.name}</strong>
+                  <dl>
+                    <div><dt>緯度</dt><dd>{formatCoordinate(selectedPlace.coordinates.lat)}</dd></div>
+                    <div><dt>経度</dt><dd>{formatCoordinate(selectedPlace.coordinates.lng)}</dd></div>
+                  </dl>
+                </>
+              ) : <p className="empty-state">まだ地点が選択されていません。</p>}
+            </section>
+
+            <div className="forecast-panel" aria-live="polite" aria-busy={forecastStatus === "loading"}>
+              {forecastStatus === "idle" && <p className="forecast-prompt">地点を選ぶと、今日の夕焼け評価を表示します。</p>}
+              {forecastStatus === "loading" && <p className="forecast-loading" role="status">気象と地形を評価しています…</p>}
+              {forecastStatus === "error" && (
+                <div className="forecast-error" role="alert">
+                  <strong>予報を表示できません</strong>
+                  <p>{forecastError}</p>
+                  <button type="button" onClick={() => selectedPlace && requestForecast(selectedPlace.coordinates)}>再試行</button>
+                </div>
+              )}
+              {forecastStatus === "success" && forecast && <ForecastResult forecast={forecast} />}
+            </div>
+
+            {!(forecastStatus === "success" && forecast) && (
+              <p className="terrain-notice">見晴らしは地形を考慮した推定です。建物・樹木などの遮蔽物は考慮していません。</p>
             )}
-            {forecastStatus === "success" && forecast && <ForecastResult forecast={forecast} />}
-          </div>
+          </aside>
 
-          {!(forecastStatus === "success" && forecast) && (
-            <p className="terrain-notice">見晴らしは地形を考慮した推定です。建物・樹木などの遮蔽物は考慮していません。</p>
-          )}
-        </aside>
-
-        <section className="map-card" aria-label="日本地図">
-          <div className="map-heading"><span>予報する地点</span><small>日本国内</small></div>
-          <div className="map-canvas">
-            <div className="google-map" ref={mapElement} />
-            {mapStatus === "loading" && <p className="map-message">地図を準備しています…</p>}
-            {mapStatus === "missing-key" && <p className="map-message map-error">Google Maps APIキーが設定されていません。ローカル起動時に<code>VITE_GOOGLE_MAPS_API_KEY</code>を渡してください。</p>}
-            {mapStatus === "error" && <p className="map-message map-error">地図を読み込めませんでした。APIキーの参照元・API制限とブラウザの開発者ツールを確認してください。</p>}
-          </div>
+          <section className="map-card" aria-label="日本地図">
+            <div className="map-heading"><span>予報する地点</span><small>日本国内</small></div>
+            <div className="map-canvas">
+              <div className="google-map" ref={mapElement} />
+              {mapStatus === "loading" && <p className="map-message">地図を準備しています…</p>}
+              {mapStatus === "missing-key" && <p className="map-message map-error">Google Maps APIキーが設定されていません。ローカル起動時に<code>VITE_GOOGLE_MAPS_API_KEY</code>を渡してください。</p>}
+              {mapStatus === "error" && <p className="map-message map-error">地図を読み込めませんでした。APIキーの参照元・API制限とブラウザの開発者ツールを確認してください。</p>}
+            </div>
+          </section>
         </section>
-      </section>
-    </main>
+      </main>
+
+      <footer className="site-footer" aria-labelledby="data-sources-heading">
+        <h2 id="data-sources-heading">データ出典</h2>
+        <ul className="data-sources">
+          <li>気象：<a href="https://open-meteo.com/">Open-Meteo</a>（<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>）</li>
+          <li>地形：<a href="https://service.gsi.go.jp/kiban/app/help/">国土地理院「基盤地図情報（数値標高モデル）DEM10B」</a>を加工して作成</li>
+          <li>地図・場所検索：<a href="https://mapsplatform.google.com/">Google Maps Platform</a></li>
+        </ul>
+        <p>夕焼けスコア・地形評価は、上記データを基に当サイトが算出しています。</p>
+        <details className="calculation-details">
+          <summary>算出方法について</summary>
+          <dl>
+            <div>
+              <dt>夕焼けスコア</dt>
+              <dd>日没前後の雲量・視程・湿度・降水などの気象予報を基に、当サイト独自のルールで算出します。Gradient はなめらかなグラデーション、Dramatic は赤や桃色の鮮やかな焼け空への期待度です。実際の夕焼けを保証するものではありません。</dd>
+            </div>
+            <div>
+              <dt>地形上の見晴らし</dt>
+              <dd>DEM10B の標高から日没方向の地形による遮蔽を推定します。建物・樹木などの遮蔽物は考慮していません。</dd>
+            </div>
+            <div>
+              <dt>日没時刻・見頃</dt>
+              <dd>日没時刻は指定地点と今日の日付を基に天文計算で求めます。見頃は日没20分前から日没25分後までを目安として表示しています。</dd>
+            </div>
+          </dl>
+        </details>
+      </footer>
+    </div>
   );
 }
