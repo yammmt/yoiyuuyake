@@ -64,10 +64,23 @@ python3 api/server.py --data gsi/derived-dem10b-v1
 
 ターミナル2でGoogle Maps APIキーを渡し、Webアプリを起動する。
 
+Bashの場合:
+
 ```bash
 cd site
 npm ci
 read -r -s -p "Google Maps API key: " VITE_GOOGLE_MAPS_API_KEY
+echo
+export VITE_GOOGLE_MAPS_API_KEY
+npm run dev
+```
+
+Zshの場合（`read`のプロンプトは変数名の後ろに`?`で指定する）:
+
+```zsh
+cd site
+npm ci
+read -r -s "VITE_GOOGLE_MAPS_API_KEY?Google Maps API key: "
 echo
 export VITE_GOOGLE_MAPS_API_KEY
 npm run dev
