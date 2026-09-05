@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LatestForecastLoader, type Coordinates, type Forecast, type Score } from "./forecast";
+import { selectedPlaceFromDetails, type PlaceDetails, type SelectedPlace } from "./place";
 
 type MapClickEvent = {
   latLng?: { lat(): number; lng(): number };
@@ -9,11 +10,14 @@ type MapClickEvent = {
 
 type GoogleMap = {
   addListener(eventName: "click", handler: (event: MapClickEvent) => void): void;
+  setCenter(position: Coordinates): void;
+  setZoom(zoom: number): void;
 };
 
 type GoogleMarker = {
   setMap(map: GoogleMap | null): void;
   setPosition(position: Coordinates): void;
+  setTitle(title: string): void;
 };
 
 type GoogleMapsApi = {
@@ -35,6 +39,26 @@ type GoogleMapsApi = {
     },
   ) => GoogleMap;
   Marker: new (options: { map: GoogleMap; position: Coordinates; title: string }) => GoogleMarker;
+  importLibrary(name: "places"): Promise<GooglePlacesLibrary>;
+};
+
+type GooglePlace = PlaceDetails & {
+  fetchFields(options: { fields: string[] }): Promise<void>;
+};
+
+type PlaceSelectEvent = Event & {
+  placePrediction: { toPlace(): GooglePlace };
+};
+
+type PlaceAutocompleteElement = HTMLElement & {
+  description: string;
+  placeholder: string;
+};
+
+type GooglePlacesLibrary = {
+  PlaceAutocompleteElement: new (options: {
+    includedRegionCodes: string[];
+  }) => PlaceAutocompleteElement;
 };
 
 declare global {
@@ -147,21 +171,23 @@ function ForecastResult({ forecast }: { forecast: Forecast }) {
 
 export default function Home() {
   const mapElement = useRef<HTMLDivElement>(null);
+  const searchElement = useRef<HTMLDivElement>(null);
   const marker = useRef<GoogleMarker | null>(null);
-  const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
+  const selectionSequence = useRef(0);
+  const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(null);
   const [mapStatus, setMapStatus] = useState<"loading" | "ready" | "error" | "missing-key">(
     GOOGLE_MAPS_API_KEY ? "loading" : "missing-key",
   );
   const [forecast, setForecast] = useState<Forecast | null>(null);
   const [forecastStatus, setForecastStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [forecastError, setForecastError] = useState("");
+  const [searchError, setSearchError] = useState("");
   const forecastLoader = useRef<LatestForecastLoader | null>(null);
   if (forecastLoader.current === null) {
     forecastLoader.current = new LatestForecastLoader(FORECAST_API_URL);
   }
 
   const requestForecast = useCallback((nextCoordinates: Coordinates) => {
-    setCoordinates(nextCoordinates);
     setForecast(null);
     setForecastError("");
     setForecastStatus("loading");
@@ -181,10 +207,12 @@ export default function Home() {
   useEffect(() => {
     if (!GOOGLE_MAPS_API_KEY) return;
     if (!mapElement.current) return;
+    if (!searchElement.current) return;
 
     let cancelled = false;
+    const searchContainer = searchElement.current;
     void loadGoogleMaps(GOOGLE_MAPS_API_KEY)
-      .then((maps) => {
+      .then(async (maps) => {
         if (cancelled || !mapElement.current) return;
         const map = new maps.Map(mapElement.current, {
           center: INITIAL_CENTER,
@@ -197,16 +225,63 @@ export default function Home() {
           fullscreenControl: false,
           restriction: { latLngBounds: JAPAN_BOUNDS, strictBounds: true },
         });
+
+        const selectPlace = (nextPlace: SelectedPlace, moveMap: boolean) => {
+          setSelectedPlace(nextPlace);
+          setSearchError("");
+          if (marker.current) {
+            marker.current.setPosition(nextPlace.coordinates);
+            marker.current.setTitle(nextPlace.name);
+          } else {
+            marker.current = new maps.Marker({
+              map,
+              position: nextPlace.coordinates,
+              title: nextPlace.name,
+            });
+          }
+          if (moveMap) {
+            map.setCenter(nextPlace.coordinates);
+            map.setZoom(15);
+          }
+          requestForecast(nextPlace.coordinates);
+        };
+
         map.addListener("click", (event) => {
           if (!event.latLng) return;
-          const nextCoordinates = { lat: event.latLng.lat(), lng: event.latLng.lng() };
-          if (marker.current) {
-            marker.current.setPosition(nextCoordinates);
-          } else {
-            marker.current = new maps.Marker({ map, position: nextCoordinates, title: "予報する地点" });
-          }
-          requestForecast(nextCoordinates);
+          selectionSequence.current += 1;
+          selectPlace({
+            name: "地図上の指定地点",
+            coordinates: { lat: event.latLng.lat(), lng: event.latLng.lng() },
+          }, false);
         });
+
+        const { PlaceAutocompleteElement } = await maps.importLibrary("places");
+        if (cancelled) return;
+        const autocomplete = new PlaceAutocompleteElement({ includedRegionCodes: ["jp"] });
+        autocomplete.placeholder = "地名・施設名・住所を検索";
+        autocomplete.description = "日本国内の地名、施設名、住所を入力して候補から選択してください。";
+        const handlePlaceSelect = async (event: Event) => {
+          const sequence = ++selectionSequence.current;
+          setSearchError("");
+          try {
+            const place = (event as PlaceSelectEvent).placePrediction.toPlace();
+            await place.fetchFields({ fields: ["displayName", "formattedAddress", "location"] });
+            if (cancelled || sequence !== selectionSequence.current) return;
+            selectPlace(selectedPlaceFromDetails(place), true);
+          } catch (error) {
+            if (cancelled || sequence !== selectionSequence.current) return;
+            setSearchError(
+              error instanceof Error
+                ? error.message
+                : "場所の詳細を取得できませんでした。もう一度お試しください。",
+            );
+          }
+        };
+        autocomplete.addEventListener("gmp-select", handlePlaceSelect);
+        autocomplete.addEventListener("gmp-error", () => {
+          setSearchError("場所の候補を取得できませんでした。入力内容を確認して、もう一度お試しください。");
+        });
+        searchContainer.replaceChildren(autocomplete);
         setMapStatus("ready");
       })
       .catch(() => {
@@ -217,6 +292,8 @@ export default function Home() {
       cancelled = true;
       marker.current?.setMap(null);
       marker.current = null;
+      selectionSequence.current += 1;
+      searchContainer.replaceChildren();
       forecastLoader.current?.abort();
     };
   }, [requestForecast]);
@@ -234,17 +311,28 @@ export default function Home() {
       <section className="picker-layout" aria-label="予報する地点の指定">
         <aside className="instructions">
           <p className="step">1 / 1 地点を指定</p>
-          <h2>地図をクリックしてください</h2>
-          <p>予報したい場所をクリックすると、緯度・経度を確定します。施設名や住所での検索は、次の段階で追加します。</p>
+          <h2>場所を検索、または地図をクリック</h2>
+          <p>日本国内の地名・施設名・住所を検索して候補を選ぶか、予報したい場所を地図でクリックしてください。</p>
+
+          <div className="place-search">
+            <p className="section-label" id="place-search-label">場所を検索</p>
+            <div className="place-search-widget" aria-labelledby="place-search-label">
+              <div className="place-search-mount" ref={searchElement} />
+              {mapStatus === "loading" && <p>検索を準備しています…</p>}
+              {mapStatus === "missing-key" && <p>検索にはGoogle Maps APIキーが必要です。</p>}
+              {mapStatus === "error" && <p>場所の検索を読み込めませんでした。</p>}
+            </div>
+            {searchError && <p className="place-search-error" role="alert">{searchError}</p>}
+          </div>
 
           <section className="selected-place" aria-live="polite">
             <p className="section-label">選択した地点</p>
-            {coordinates ? (
+            {selectedPlace ? (
               <>
-                <strong>地図上の指定地点</strong>
+                <strong>{selectedPlace.name}</strong>
                 <dl>
-                  <div><dt>緯度</dt><dd>{formatCoordinate(coordinates.lat)}</dd></div>
-                  <div><dt>経度</dt><dd>{formatCoordinate(coordinates.lng)}</dd></div>
+                  <div><dt>緯度</dt><dd>{formatCoordinate(selectedPlace.coordinates.lat)}</dd></div>
+                  <div><dt>経度</dt><dd>{formatCoordinate(selectedPlace.coordinates.lng)}</dd></div>
                 </dl>
               </>
             ) : <p className="empty-state">まだ地点が選択されていません。</p>}
@@ -257,7 +345,7 @@ export default function Home() {
               <div className="forecast-error" role="alert">
                 <strong>予報を表示できません</strong>
                 <p>{forecastError}</p>
-                <button type="button" onClick={() => coordinates && requestForecast(coordinates)}>再試行</button>
+                <button type="button" onClick={() => selectedPlace && requestForecast(selectedPlace.coordinates)}>再試行</button>
               </div>
             )}
             {forecastStatus === "success" && forecast && <ForecastResult forecast={forecast} />}
