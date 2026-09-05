@@ -27,7 +27,7 @@
 
 ## 動くもの
 
-![大きめ画面 GUI](./fig/gui_deskop.png)
+![大きめ画面 GUI](./fig/gui_desktop.png)
 
 ## 構成
 
