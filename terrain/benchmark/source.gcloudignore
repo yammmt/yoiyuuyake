@@ -1,0 +1,13 @@
+**
+!terrain/
+!terrain/scripts/
+!terrain/scripts/benchmark_server.py
+!terrain/scripts/dem_store.py
+!terrain/scripts/horizon.py
+!terrain/scripts/visibility.py
+!terrain/scripts/validate_locations.py
+!terrain/validation/
+!terrain/validation/locations-kanto.json
+!terrain/benchmark/
+!terrain/benchmark/Dockerfile
+!terrain/benchmark/Dockerfile.dockerignore
