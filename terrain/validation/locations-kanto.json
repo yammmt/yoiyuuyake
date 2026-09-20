@@ -1,0 +1,12 @@
+{
+  "description": "関東近辺330タイルのクラウド比較用回帰ケース。方位270度・太陽高度1度に固定。正常3地点と欠損2地点は全国版と同じ結果、範囲外2地点は抽出による意図した失敗。実景との精度検証ではない。",
+  "locations": [
+    {"id": "tokyo-station", "latitude": 35.6812, "longitude": 139.7671, "azimuth": 270, "expected_label": "広い", "expected_angle": 0.950598, "tolerance": 0.000001},
+    {"id": "chichibu", "latitude": 35.9917, "longitude": 139.0856, "azimuth": 270, "expected_label": "一部遮られる", "expected_angle": 3.861173, "tolerance": 0.000001},
+    {"id": "okutama", "latitude": 35.8095, "longitude": 139.0962, "azimuth": 270, "expected_label": "遮られやすい", "expected_angle": 23.898664, "tolerance": 0.000001},
+    {"id": "kamakura", "latitude": 35.3192, "longitude": 139.5467, "azimuth": 270, "expected_error": "DemNoElevationError", "expected_role": "ray"},
+    {"id": "tokyo-bay", "latitude": 35.5, "longitude": 139.9, "azimuth": 270, "expected_error": "DemNoElevationError", "expected_role": "observer"},
+    {"id": "west-edge", "latitude": 35.7, "longitude": 138.4, "azimuth": 270, "expected_error": "DemOutOfCoverageError", "expected_role": "ray"},
+    {"id": "outside-west", "latitude": 35.7, "longitude": 138.2, "azimuth": 270, "expected_error": "DemOutOfCoverageError", "expected_role": "observer"}
+  ]
+}

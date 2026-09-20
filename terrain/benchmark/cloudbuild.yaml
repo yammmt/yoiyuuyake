@@ -1,0 +1,21 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --platform=linux/amd64
+      - --file=terrain/benchmark/Dockerfile
+      - --tag=asia-northeast1-docker.pkg.dev/$PROJECT_ID/dem-benchmark/terrain:$BUILD_ID
+      - .
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - run
+      - --rm
+      - asia-northeast1-docker.pkg.dev/$PROJECT_ID/dem-benchmark/terrain:$BUILD_ID
+      - python
+      - terrain/scripts/benchmark_server.py
+      - --help
+images:
+  - asia-northeast1-docker.pkg.dev/$PROJECT_ID/dem-benchmark/terrain:$BUILD_ID
+options:
+  logging: CLOUD_LOGGING_ONLY
+timeout: 600s

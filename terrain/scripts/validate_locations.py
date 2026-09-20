@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from time import perf_counter
 from typing import Any
 
 from dem_store import DemError, LocalDemStore
@@ -45,17 +46,29 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", required=True, type=Path)
     parser.add_argument(
+        "--timing",
+        action="store_true",
+        help="Report store initialization and per-location validation elapsed seconds.",
+    )
+    parser.add_argument(
         "--cases",
         type=Path,
         default=Path("terrain/validation/locations.json"),
     )
     args = parser.parse_args()
     cases = json.loads(args.cases.read_text(encoding="utf-8"))["locations"]
+    started = perf_counter()
     store = LocalDemStore(args.data)
+    if args.timing:
+        print(f"TIME store_init: {perf_counter() - started:.6f} s")
     failures = []
     try:
         for case in cases:
+            started = perf_counter()
             passed, message = _validate_case(store, case)
+            elapsed = perf_counter() - started
+            if args.timing:
+                message += f" [elapsed={elapsed:.6f} s]"
             if passed:
                 print(f"PASS {message}")
             else:
