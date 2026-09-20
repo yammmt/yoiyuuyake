@@ -1,0 +1,14 @@
+**
+!api/
+!api/*.py
+!api/Dockerfile
+!api/requirements.txt
+!weather/
+!weather/scripts/
+!weather/scripts/*.py
+!terrain/
+!terrain/scripts/
+!terrain/scripts/astronomy.py
+!terrain/scripts/dem_store.py
+!terrain/scripts/horizon.py
+!terrain/scripts/visibility.py
