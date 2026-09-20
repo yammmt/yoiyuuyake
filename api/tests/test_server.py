@@ -10,7 +10,7 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from api.application import ApiError, ApiErrorCode, ApiErrorReason
-from api.server import make_handler
+from api.server import ServerConfig, make_handler, parse_server_config, validate_dem_root
 
 
 class ApiServerTests(unittest.TestCase):
@@ -28,13 +28,18 @@ class ApiServerTests(unittest.TestCase):
         self.server.server_close()
         self.thread.join()
 
-    def get(self, path: str):
+    def request(self, path: str, *, method: str = "GET"):
         try:
-            response = urlopen(self.base_url + path, timeout=2)
+            response = urlopen(
+                Request(self.base_url + path, method=method), timeout=2
+            )
         except HTTPError as error:
             response = error
         with response:
             return response.status, response.headers, json.load(response)
+
+    def get(self, path: str):
+        return self.request(path)
 
     def test_success_is_json_and_allows_local_site_requests(self) -> None:
         expected = {"weather": {"gradient": {"score": 80}}}
@@ -80,6 +85,39 @@ class ApiServerTests(unittest.TestCase):
             self.assertEqual(response.status, 204)
             self.assertEqual(response.headers["Access-Control-Allow-Methods"], "GET, OPTIONS")
 
+    def test_unsupported_method_matches_hosted_api_contract(self) -> None:
+        status, headers, body = self.request("/api/forecast", method="POST")
+
+        self.assertEqual(status, 405)
+        self.assertEqual(headers["Allow"], "GET, OPTIONS")
+        self.assertEqual(headers["Access-Control-Allow-Methods"], "GET, OPTIONS")
+        self.assertEqual(
+            body,
+            {
+                "error": {
+                    "code": "method_not_allowed",
+                    "message": "GET または OPTIONS を使用してください",
+                }
+            },
+        )
+
+    def test_head_unknown_path_preserves_404_headers_without_body(self) -> None:
+        request = Request(self.base_url + "/unknown", method="HEAD")
+        try:
+            response = urlopen(request, timeout=2)
+        except HTTPError as error:
+            response = error
+
+        with response:
+            self.assertEqual(response.status, 404)
+            self.assertEqual(
+                response.headers["Content-Type"], "application/json; charset=utf-8"
+            )
+            self.assertEqual(response.headers["Access-Control-Allow-Origin"], "*")
+            self.assertEqual(response.headers["Cache-Control"], "no-store")
+            self.assertGreater(int(response.headers["Content-Length"]), 0)
+            self.assertEqual(response.read(), b"")
+
     def test_dem_error_includes_diagnostic_reason(self) -> None:
         error = ApiError(
             ApiErrorCode.DEM_UNAVAILABLE,
@@ -100,6 +138,40 @@ class ApiServerTests(unittest.TestCase):
                 }
             },
         )
+
+
+class ServerConfigurationTests(unittest.TestCase):
+    def test_cloud_environment_supplies_runtime_configuration(self) -> None:
+        config = parse_server_config(
+            [],
+            environ={
+                "HOST": "0.0.0.0",
+                "PORT": "8080",
+                "DEM_ROOT": "/dem/derived-dem10b-v1",
+            },
+        )
+
+        self.assertEqual(
+            config,
+            ServerConfig("0.0.0.0", 8080, Path("/dem/derived-dem10b-v1")),
+        )
+
+    def test_cli_values_override_environment(self) -> None:
+        config = parse_server_config(
+            ["--host", "127.0.0.2", "--port", "9000", "--data", "custom-dem"],
+            environ={"HOST": "0.0.0.0", "PORT": "8080", "DEM_ROOT": "/dem"},
+        )
+
+        self.assertEqual(
+            config, ServerConfig("127.0.0.2", 9000, Path("custom-dem"))
+        )
+
+    def test_startup_validation_opens_and_closes_dem_store(self) -> None:
+        with patch("api.server.LocalDemStore") as store_class:
+            validate_dem_root(Path("prepared-dem"))
+
+        store_class.assert_called_once_with(Path("prepared-dem"))
+        store_class.return_value.close.assert_called_once_with()
 
 
 if __name__ == "__main__":
