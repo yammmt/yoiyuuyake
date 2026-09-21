@@ -1,0 +1,26 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --platform=linux/amd64
+      - --file=api/Dockerfile
+      - --tag=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/api:$BUILD_ID
+      - .
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - run
+      - --rm
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/api:$BUILD_ID
+      - gunicorn
+      - --check-config
+      - --config
+      - api/gunicorn.conf.py
+      - api.wsgi:application
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/api:$BUILD_ID
+substitutions:
+  _REGION: asia-northeast1
+  _REPOSITORY: yoiyuuyake
+options:
+  logging: CLOUD_LOGGING_ONLY
+timeout: 600s

@@ -33,7 +33,7 @@
 
 ```text
 site/       地点指定と夕焼け評価を表示するWebアプリ
-api/        日没・気象・地形をまとめるローカルPython API
+api/        日没・気象・地形をまとめるPython API（ローカル / Cloud Run）
 terrain/    DEM変換、天文計算、地形視界
 weather/    Open-Meteoの取得と夕焼けスコア
 docs/       MVP仕様、データ準備、判断記録

@@ -1,9 +1,9 @@
-# ローカル統合 API
+# 統合 API
 
-site が地点指定後に一度の呼び出しで今日の夕焼け評価を取得するための、ローカル Python API である。
+site が地点指定後に一度の呼び出しで今日の夕焼け評価を取得するための Python API である。
 天文計算、Open-Meteo の気象評価、ローカル DEM の地形評価がすべて成功した場合にだけ結果を返す。
 
-## 起動
+## ローカル起動
 
 Python 3.13 以降と、変換済みの国土地理院 DEM が必要である。
 
@@ -11,7 +11,142 @@ Python 3.13 以降と、変換済みの国土地理院 DEM が必要である。
 python3 api/server.py --data gsi/derived-dem10b-v1
 ```
 
-サーバーは `127.0.0.1:8787` だけで待ち受ける。別のポートを使う場合は `--port` を指定する。Cloudflare やデータベースなどの外部実行基盤は使用しない。
+サーバーは既定で `127.0.0.1:8787` だけで待ち受ける。`--host`、`--port`、`--data` で変更できる。
+同じ値を `HOST`、`PORT`、`DEM_ROOT` でも指定でき、コマンドライン引数を指定した場合はそちらを優先する。
+
+```bash
+HOST=0.0.0.0 PORT=8080 DEM_ROOT=gsi/derived-dem10b-v1 \
+  python3 -m api.server
+```
+
+起動時に DEM の `index.json` を読み、利用できなければ待受を開始せず終了コード 1 で停止する。
+ローカルサーバーは開発確認用であり、公開コンテナでは Gunicorn を使用する。
+
+## Cloud Run 用コンテナ
+
+採用構成は Cloud Run（東京）から Cloud Storage の DEM を読み取り専用でマウントする構成である。
+コンテナは Cloud Run が設定する `PORT` を Gunicorn で待ち受け、`DEM_ROOT` を変換済み DEM のディレクトリに設定する。
+依存は Gunicorn のみで、API の評価ロジックはローカル起動と共有する。
+
+ローカルでコンテナを確認する場合は、リポジトリルートで次を実行する。
+
+```bash
+docker build --file api/Dockerfile --tag yoiyuuyake-api:local .
+
+docker run --rm \
+  --publish 8080:8080 \
+  --env PORT=8080 \
+  --env DEM_ROOT=/dem \
+  --volume "$PWD/gsi/derived-dem10b-v1:/dem:ro" \
+  yoiyuuyake-api:local
+```
+
+別ターミナルから正常系を確認する。
+
+```bash
+curl --fail-with-body --silent --show-error \
+  'http://127.0.0.1:8080/api/forecast?lat=35.6812&lng=139.7671'
+```
+
+### ビルド
+
+事前に東京リージョンへ Docker 形式の Artifact Registry リポジトリ `yoiyuuyake` と、Cloud Build のソース用バケットを用意する。
+`PROJECT_ID`、`BUILD_SOURCE_BUCKET`、`BUILD_SERVICE_ACCOUNT` は実環境の値へ置き換える。
+
+```bash
+gcloud builds submit . \
+  --project=PROJECT_ID \
+  --region=asia-northeast1 \
+  --config=api/cloudbuild.yaml \
+  --ignore-file=api/source.gcloudignore \
+  --gcs-source-staging-dir=gs://BUILD_SOURCE_BUCKET/source \
+  --service-account=projects/PROJECT_ID/serviceAccounts/BUILD_SERVICE_ACCOUNT \
+  --machine-type=e2-standard-2 \
+  --timeout=10m
+```
+
+送信対象と Docker のビルド対象は許可リストで制限しており、`gsi/` の DEM、認証情報、site の生成物を含めない。
+ビルドはイメージ内で Gunicorn 設定の読み込みも検証する。
+
+### 配置
+
+次は Issue #36 の検証で採用した 1 CPU・512 MiB・同時実行 1・ファイルキャッシュ 128 MiB の設定例である。
+`IMAGE_URL` はビルドしたイメージのタグまたはダイジェスト、`DEM_BUCKET` は全国 DEM を配置したバケット、`RUNTIME_SERVICE_ACCOUNT` はバケットに `roles/storage.objectViewer` だけを持つ実行用サービスアカウントへ置き換える。
+
+```bash
+gcloud run deploy yoiyuuyake-api \
+  --project=PROJECT_ID \
+  --region=asia-northeast1 \
+  --image=IMAGE_URL \
+  --service-account=RUNTIME_SERVICE_ACCOUNT \
+  --execution-environment=gen2 \
+  --cpu=1 \
+  --memory=512Mi \
+  --concurrency=1 \
+  --min=0 \
+  --max=1 \
+  --cpu-throttling \
+  --no-cpu-boost \
+  --timeout=60s \
+  --allow-unauthenticated \
+  --invoker-iam-check \
+  --set-env-vars=DEM_ROOT=/dem/derived-dem10b-v1 \
+  --add-volume=name=dem-cache,type=in-memory,size-limit=160Mi \
+  --add-volume-mount=volume=dem-cache,mount-path=/dem-cache \
+  --add-volume='name=dem,type=cloud-storage,bucket=DEM_BUCKET,readonly=true,mount-options=cache-dir=cr-volume:dem-cache;file-cache-max-size-mb=128;file-cache-cache-file-for-range-read=true' \
+  --add-volume-mount=volume=dem,mount-path=/dem
+```
+
+ブラウザの site が直接呼び出すため未認証アクセスを許可する。書き込み API はなく、DEM マウントと Storage 権限は読み取り専用とする。
+`PORT` は Cloud Run の予約済み環境変数なのでデプロイ時に設定しない。
+
+### 起動・API 契約の確認
+
+Gunicorn はリクエストを受け付ける前に DEM インデックスを検証する。デプロイ完了後はサービス URL を確認し、正常系と入力不正をそれぞれ確認する。
+
+```bash
+gcloud run services describe yoiyuuyake-api \
+  --project=PROJECT_ID \
+  --region=asia-northeast1 \
+  --format='value(status.url)'
+
+curl --fail-with-body --silent --show-error --max-time 65 \
+  'SERVICE_URL/api/forecast?lat=35.6812&lng=139.7671'
+
+curl --silent --show-error --include \
+  'SERVICE_URL/api/forecast?lat=0&lng=0'
+```
+
+一つ目は HTTP 200 と完全な評価、二つ目は HTTP 400 と `invalid_input` だけを返すことを確認する。
+気象取得失敗は HTTP 502、DEM の欠損・範囲外・障害は HTTP 503 となり、既存のエラー本文を維持する。
+
+### ログ
+
+起動、終了、リクエスト完了、評価失敗を 1 行 JSON で標準出力へ記録する。
+緯度・経度とクエリ文字列はアプリケーションログへ記録しない。
+起動失敗と API エラーは次のように確認できる。
+
+```bash
+gcloud logging read \
+  'resource.type="cloud_run_revision"
+   AND resource.labels.service_name="yoiyuuyake-api"
+   AND (jsonPayload.event="startup_failed"
+        OR jsonPayload.event="forecast_failed")' \
+  --project=PROJECT_ID \
+  --freshness=1h \
+  --order=desc \
+  --limit=30 \
+  --format=json
+```
+
+Cloud Run からの `SIGTERM` は Gunicorn が処理し、処理中のリクエストを 9 秒まで待って終了する。
+Cloud Run の 10 秒の終了猶予内に収める設定である。
+
+関連する公式資料:
+
+- [Cloud Run のコンテナ ランタイム契約](https://docs.cloud.google.com/run/docs/container-contract)
+- [Cloud Storage ボリュームのマウント](https://docs.cloud.google.com/run/docs/configuring/services/cloud-storage-volume-mounts)
+- [Cloud Run の Python アプリ最適化](https://docs.cloud.google.com/run/docs/tips/python)
 
 ## API 契約
 
@@ -100,7 +235,7 @@ DEM10Bでは海上と陸上のデータ欠損を区別できないため、ど�
 
 ## テスト
 
-外部 API や実際の DEM に依存せず、正常系、入力不正、気象失敗、DEM 失敗、HTTP 契約を検証する。
+外部 API や実際の DEM に依存せず、正常系、入力不正、気象失敗、DEM 失敗、ローカル HTTP と公開 WSGI の契約を検証する。
 
 ```bash
 python3 -m unittest discover -s api/tests
