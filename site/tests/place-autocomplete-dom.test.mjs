@@ -1,9 +1,14 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import test, { afterEach } from "node:test";
 import { JSDOM } from "jsdom";
 import { runnerImport } from "vite";
 
 process.env.VITE_GOOGLE_MAPS_API_KEY = "test-key";
+const originalFetch = globalThis.fetch;
+
+afterEach(() => {
+  globalThis.fetch = originalFetch;
+});
 
 const dom = new JSDOM("<!doctype html><html><body></body></html>", {
   url: "http://localhost:3000/",
@@ -53,7 +58,23 @@ const completeForecast = {
 };
 
 class FakeMap {
-  addListener() {}
+  static latest;
+
+  constructor() {
+    this.listeners = new Map();
+    FakeMap.latest = this;
+  }
+
+  addListener(eventName, handler) {
+    this.listeners.set(eventName, handler);
+  }
+
+  click(lat, lng) {
+    this.listeners.get("click")?.({
+      latLng: { lat: () => lat, lng: () => lng },
+    });
+  }
+
   setCenter() {}
   setZoom() {}
 }
@@ -109,10 +130,11 @@ function installGoogleMaps() {
   };
 }
 
-async function renderHome() {
+async function renderHome(fetcher = async () => Response.json(completeForecast)) {
   document.body.innerHTML = '<div id="root"></div>';
+  FakeMap.latest = undefined;
   installGoogleMaps();
-  globalThis.fetch = async () => Response.json(completeForecast);
+  globalThis.fetch = fetcher;
   const root = createRoot(document.querySelector("#root"));
   await act(async () => {
     root.render(createElement(Home));
@@ -120,7 +142,13 @@ async function renderHome() {
   const autocomplete = document.querySelector(".place-search-mount > *");
   assert.ok(autocomplete instanceof FakePlaceAutocompleteElement);
   assert.deepEqual(autocomplete.options.includedRegionCodes, ["jp"]);
-  return { root, autocomplete, input: autocomplete.querySelector("input") };
+  assert.ok(FakeMap.latest instanceof FakeMap);
+  return {
+    root,
+    map: FakeMap.latest,
+    autocomplete,
+    input: autocomplete.querySelector("input"),
+  };
 }
 
 async function chooseWithKeyboard(input) {
@@ -190,5 +218,44 @@ test("an autocomplete request rejection is announced", async () => {
     alert?.textContent,
     "場所の候補を取得できませんでした。入力内容を確認して、もう一度お試しください。",
   );
+  await act(async () => root.unmount());
+});
+
+test("a map click selects coordinates and displays the forecast", async () => {
+  const { root, map } = await renderHome();
+
+  await act(async () => map.click(35.681236, 139.767125));
+
+  const selectedPlace = document.querySelector(".selected-place");
+  assert.match(selectedPlace.textContent, /地図上の指定地点/);
+  assert.match(selectedPlace.textContent, /35\.681236/);
+  assert.match(selectedPlace.textContent, /139\.767125/);
+  assert.match(document.querySelector(".forecast-result").textContent, /70 \/ 100/);
+  assert.match(document.querySelector(".forecast-result").textContent, /広い/);
+  await act(async () => root.unmount());
+});
+
+test("a forecast failure is displayed and can be retried", async () => {
+  let requestCount = 0;
+  const { root, map } = await renderHome(async () => {
+    requestCount += 1;
+    if (requestCount === 1) {
+      return Response.json(
+        { error: { message: "日没方向を評価できませんでした。" } },
+        { status: 503 },
+      );
+    }
+    return Response.json(completeForecast);
+  });
+
+  await act(async () => map.click(35.681236, 139.767125));
+
+  const alert = document.querySelector('.forecast-error[role="alert"]');
+  assert.match(alert.textContent, /日没方向を評価できませんでした。/);
+
+  await act(async () => alert.querySelector("button").click());
+
+  assert.equal(requestCount, 2);
+  assert.match(document.querySelector(".forecast-result").textContent, /Dramatic/);
   await act(async () => root.unmount());
 });
