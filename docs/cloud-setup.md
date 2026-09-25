@@ -73,6 +73,22 @@ Maps の画面でキーが表示されたことだけでは、新規作成と既
 
 参考: [Google Maps のセキュリティ指針](https://developers.google.com/maps/api-security-best-practices)
 
+### 開発用 Maps キーの運用
+
+- 通常のフロントエンド開発は Maps キーなしで行う。地図と地点検索の手動確認時だけ、[フロントエンドの README](../site/README.md#必要な環境変数) に従って 1Password CLI からキーを注入する。
+- キーは `.env.development.local` へ保存しない。Git の除外設定は、ローカルのプロセスやツールからの読み取りを防ぐものではない。
+- アプリケーションの制限を「ウェブサイト」、API の制限を Maps JavaScript API と Places API (New) にする。ローカル確認では `http://localhost:3000/*` と `http://127.0.0.1:3000/*` だけを許可する。
+- Maps JavaScript API と Places API (New) の調整可能な割り当てを、開発時の想定リクエスト数に近い低い値へ下げる。上限到達後はリクエストが拒否されるため、予算通知だけの場合より被害を限定できる。
+- API の指標を認証情報 ID で絞り、想定外の利用量を検知できる通知を設定する。予算通知は支出を自動停止しないため、割り当て上限の代用にはしない。
+- 漏洩または想定外の利用を検知した場合は、対象キーを直ちに無効化し、利用状況を確認してから新しいキーへ交換する。交換後のキーにも同じ制限を設定する。
+
+複数人で継続的に開発する場合は、キーを共有せず開発者ごとに分ける。固定の開発・プレビュー用ドメインを用意できる場合は、localhost よりそのドメインを優先し、許可する参照元を限定する。
+
+参考:
+
+- [Maps の API キー保護](https://developers.google.com/maps/api-security-best-practices)
+- [Maps の費用と割り当て管理](https://developers.google.com/maps/billing-and-pricing/manage-costs)
+
 ## 課金と予算
 
 以下の「アラートのみ」の予算を作成する前に、操作する範囲に応じた権限を確認する。

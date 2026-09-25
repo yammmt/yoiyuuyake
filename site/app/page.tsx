@@ -1,5 +1,3 @@
-"use client";
-
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LatestForecastLoader, type Coordinates, type Forecast, type Score } from "./forecast";
 import { selectedPlaceFromDetails, type PlaceDetails, type SelectedPlace } from "./place";

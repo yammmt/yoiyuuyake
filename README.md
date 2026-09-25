@@ -32,7 +32,7 @@
 ## 構成
 
 ```text
-site/       地点指定と夕焼け評価を表示するWebアプリ
+site/       地点指定と夕焼け評価を表示する静的Webアプリ（Firebase Hosting向け）
 api/        日没・気象・地形をまとめるPython API（ローカル / Cloud Run）
 terrain/    DEM変換、天文計算、地形視界
 weather/    Open-Meteoの取得と夕焼けスコア
@@ -104,7 +104,7 @@ cd site
 npm test
 ```
 
-`gsi/`内の元データと変換済みタイル、`site/node_modules/`、`site/.next/`、`site/dist/`などの生成物はGit管理しない。
+`gsi/`内の元データと変換済みタイル、`site/node_modules/`、`site/dist/`などの生成物はGit管理しない。Firebase Hosting向けのビルド・ローカル確認・配信手順は[siteのREADME](site/README.md#静的成果物)を参照する。
 
 ## データ出典
 

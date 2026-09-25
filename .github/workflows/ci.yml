@@ -50,3 +50,10 @@ jobs:
         run: npm ci
       - name: Run tests
         run: npm test
+      - name: Build production site
+        env:
+          VITE_GOOGLE_MAPS_API_KEY: ci-production-build-key
+          VITE_FORECAST_API_URL: https://forecast.test.invalid
+        run: npm run build
+      - name: Verify production artifact
+        run: test -f dist/index.html
