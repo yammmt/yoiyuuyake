@@ -1,5 +1,8 @@
 # 地形データのクラウド配置の検証記録
 
+実環境の識別情報は Git 管理外のルート `.env` に移した。
+`${変数名}` の読み込み方法は [配置記録の設定値](cloud-deployment.md#ローカルの設定値) を参照する。
+
 Issue #36 の構成選定用の記録。測定日は 2026-09-19。
 再現手順は[検証コンテナの README](../terrain/benchmark/README.md)にまとめる。
 
@@ -24,13 +27,13 @@ Cloud Build → Artifact Registry → Cloud Run（東京）
 
 | 項目 | 条件 |
 | --- | --- |
-| プロジェクト / リージョン | `mapsproduction-507807` / `asia-northeast1` |
+| プロジェクト / リージョン | `${PROJECT_ID}` / `asia-northeast1` |
 | Cloud Run | gen2、1 CPU、512 MiB、concurrency 1、min 0、max 1 |
 | 課金・起動 | リクエストベース課金、CPU boost 無効 |
 | 検証サービス | `dem-benchmark`、認証必須、timeout 300 秒 |
-| 最終リビジョン | `dem-benchmark-00003-f9s` |
+| 最終リビジョン | `${BENCHMARK_REVISION}` |
 | ファイルキャッシュ | 上限 128 MiB、メモリボリューム上限 160 MiB、range read 時の全ファイル取得を有効化 |
-| DEM 配置先 | `gs://mapsproduction-507807-dem-benchmark/derived-dem10b-kanto-v1` |
+| DEM 配置先 | `gs://${BENCHMARK_DEM_BUCKET}/derived-dem10b-kanto-v1` |
 | DEM 容量 | 330 タイル＋インデックス、556,963,321 bytes（約 0.519 GiB） |
 | 抽出指定範囲 | 北緯 35〜36.5 度、東経 138.5〜140.5 度 |
 | タイルの外接範囲 | 北緯 34.916666667〜36.583333333 度、東経 138.375〜140.625 度 |
@@ -42,11 +45,11 @@ Cloud Build → Artifact Registry → Cloud Run（東京）
 ケースは `terrain/validation/locations-kanto.json`、方位 270 度・太陽高度 1 度で固定した。
 アプリは評価結果をキャッシュせず、OS・FUSE のキャッシュは維持した。
 
-検証イメージはビルド ID `083ae1eb-21e8-49f4-83a8-4c67a2ce3d79` で作成した（所要 18 秒）。
-イメージ名は `asia-northeast1-docker.pkg.dev/mapsproduction-507807/dem-benchmark/terrain`、ダイジェストは次のとおり。
+検証イメージはビルド ID `${BENCHMARK_BUILD_ID}` で作成した（所要 18 秒）。
+イメージ名は `${BENCHMARK_IMAGE_URL}`、ダイジェストは次のとおり。
 
 ```text
-sha256:9e23a9e96d4a6c42d5bc970defb2660ce6f61ecc1acaf4f7c4b74a96c3043e06
+${BENCHMARK_IMAGE_DIGEST}
 ```
 
 ## 結果
@@ -138,9 +141,9 @@ min 0 でも保存費用は継続し、max 1 は厳密な課金上限にはな�
 | リソース | 用途 |
 | --- | --- |
 | Cloud Run `dem-benchmark` | 認証付きの固定ケース検証。公開 API には使わない |
-| バケット `mapsproduction-507807-dem-benchmark` | 関東近辺 DEM |
+| バケット `${BENCHMARK_DEM_BUCKET}` | 関東近辺 DEM |
 | Artifact Registry `dem-benchmark` | 検証イメージ |
-| バケット `mapsproduction-507807-build-source` | ビルド用ソース |
+| バケット `${BUILD_SOURCE_BUCKET}` | ビルド用ソース |
 | 実行用・ビルド用サービスアカウントと権限 | DEM 読み取りと再ビルド |
 
 本番 API への移行後、不要な検証サービス・イメージ・ソースを整理する。

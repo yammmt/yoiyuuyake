@@ -92,6 +92,7 @@ Webアプリの既定URLは <http://localhost:3000>、統合APIは <http://127.0
 
 - [地形エンジン](terrain/README.md)
 - [統合API契約](api/README.md)
+- [本番APIの配置記録と再開手順](docs/cloud-deployment.md)
 - [Webアプリ](site/README.md)
 - [気象取得とスコア](weather/README.md)
 
