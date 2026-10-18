@@ -89,6 +89,9 @@ npm run preview
 
 ## Firebase Hosting での確認と配信
 
+別の Hosting サイトを指定する現在の配置手順は、[Hosting の配置記録](../docs/hosting-deployment.md)を参照する。
+以下はデフォルトサイトへ配信する場合の手順である。
+
 リポジトリ直下の `firebase.json` は `site/dist/` だけを配信する。
 Firebase プロジェクト ID はリポジトリへ保存せず、コマンドごとに運用記録の値を指定する。
 
