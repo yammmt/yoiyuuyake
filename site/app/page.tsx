@@ -301,8 +301,8 @@ export default function Home() {
       <main>
         <header className="app-header">
           <div>
-            <p className="eyebrow">Yūyake Finder</p>
-            <h1>今夜の空を、指定地点で確かめる。</h1>
+            <p className="eyebrow">Yoiyuuyake</p>
+            <h1>夕焼け予報</h1>
           </div>
           <p className="today">今日の日没を対象にします</p>
         </header>
