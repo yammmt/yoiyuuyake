@@ -1,5 +1,8 @@
 # 地形読み取りの検証コンテナ
 
+実環境の識別情報は Git 管理外のルート `.env` に移した。
+`${変数名}` の読み込み方法は [配置記録の設定値](../../docs/cloud-deployment.md#ローカルの設定値) を参照する。
+
 Issue #36専用の固定ケース実行サーバー。本番の予報APIとは別に使用する。
 Python標準ライブラリのみで動く。Cloud Runでは認証必須、同時実行数1で配置する。
 採用判断・測定結果・費用は[検証記録](../../docs/cloud-benchmark.md)を参照。
@@ -44,10 +47,10 @@ DEM の抽出は[範囲抽出手順](../README.md#検証用の範囲抽出)を�
 
 | 前提リソース | 権限・設定 |
 | --- | --- |
-| DEM バケット `mapsproduction-507807-dem-benchmark` | 東京・Standard、関東版 DEM を配置済み。`maps-python-api` に `roles/storage.objectViewer` |
-| ソースバケット `mapsproduction-507807-build-source` | 東京・Standard、ビルド用アカウントに `roles/storage.objectViewer` |
+| DEM バケット `${BENCHMARK_DEM_BUCKET}` | 東京・Standard、関東版 DEM を配置済み。`${BENCHMARK_RUNTIME_SERVICE_ACCOUNT}` に `roles/storage.objectViewer` |
+| ソースバケット `${BUILD_SOURCE_BUCKET}` | 東京・Standard、ビルド用アカウントに `roles/storage.objectViewer` |
 | Artifact Registry `dem-benchmark` | 東京・Docker 形式、ビルド用アカウントに `roles/artifactregistry.writer` |
-| ビルド用アカウント `903647380527-compute@developer.gserviceaccount.com` | プロジェクトに `roles/logging.logWriter` |
+| ビルド用アカウント `${BENCHMARK_BUILD_SERVICE_ACCOUNT}` | プロジェクトに `roles/logging.logWriter` |
 
 両バケットは uniform bucket-level access、public access prevention を有効、soft delete を無効にした。
 Cloud Build、Artifact Registry、Cloud Run、Storage、IAM 関連 API は有効化済み。
@@ -58,18 +61,18 @@ Cloud Build、Artifact Registry、Cloud Run、Storage、IAM 関連 API は有効
 
 ```bash
 gcloud builds submit . \
-  --project=mapsproduction-507807 \
+  --project=${PROJECT_ID} \
   --region=asia-northeast1 \
   --config=terrain/benchmark/cloudbuild.yaml \
   --ignore-file=terrain/benchmark/source.gcloudignore \
-  --gcs-source-staging-dir=gs://mapsproduction-507807-build-source/source \
-  --service-account=projects/mapsproduction-507807/serviceAccounts/903647380527-compute@developer.gserviceaccount.com \
+  --gcs-source-staging-dir=gs://${BUILD_SOURCE_BUCKET}/source \
+  --service-account=projects/${PROJECT_ID}/serviceAccounts/${BENCHMARK_BUILD_SERVICE_ACCOUNT} \
   --machine-type=e2-standard-2 \
   --timeout=10m
 ```
 
 ビルド設定は `--config` で別途送信するため、ソースの許可リストには含めない。
-再ビルドした場合は `gcloud builds describe BUILD_ID --project=mapsproduction-507807 --region=asia-northeast1 --format="yaml(results.images)"` でダイジェストを確認する。
+再ビルドした場合は `gcloud builds describe BUILD_ID --project=${PROJECT_ID} --region=asia-northeast1 --format="yaml(results.images)"` でダイジェストを確認する。
 
 ## Cloud Run への配置
 
@@ -78,10 +81,10 @@ gcloud builds submit . \
 
 ```bash
 gcloud run deploy dem-benchmark \
-  --project=mapsproduction-507807 \
+  --project=${PROJECT_ID} \
   --region=asia-northeast1 \
-  --image=asia-northeast1-docker.pkg.dev/mapsproduction-507807/dem-benchmark/terrain@sha256:9e23a9e96d4a6c42d5bc970defb2660ce6f61ecc1acaf4f7c4b74a96c3043e06 \
-  --service-account=maps-python-api@mapsproduction-507807.iam.gserviceaccount.com \
+  --image=${BENCHMARK_IMAGE_URL}@${BENCHMARK_IMAGE_DIGEST} \
+  --service-account=${BENCHMARK_RUNTIME_SERVICE_ACCOUNT} \
   --execution-environment=gen2 \
   --cpu=1 \
   --memory=512Mi \
@@ -95,7 +98,7 @@ gcloud run deploy dem-benchmark \
   --invoker-iam-check \
   --add-volume=name=dem-cache,type=in-memory,size-limit=160Mi \
   --add-volume-mount=volume=dem-cache,mount-path=/dem-cache \
-  --add-volume='name=dem,type=cloud-storage,bucket=mapsproduction-507807-dem-benchmark,readonly=true,mount-options=cache-dir=cr-volume:dem-cache;file-cache-max-size-mb=128;file-cache-cache-file-for-range-read=true' \
+  --add-volume="name=dem,type=cloud-storage,bucket=${BENCHMARK_DEM_BUCKET},readonly=true,mount-options=cache-dir=cr-volume:dem-cache;file-cache-max-size-mb=128;file-cache-cache-file-for-range-read=true" \
   --add-volume-mount=volume=dem,mount-path=/dem
 ```
 
@@ -107,7 +110,7 @@ curl --fail-with-body --silent --show-error \
   --header "Authorization: Bearer $(gcloud auth print-identity-token)" \
   --output /tmp/dem-benchmark.json \
   --write-out 'HTTP %{http_code}\nHTTP total: %{time_total} s\n' \
-  https://dem-benchmark-903647380527.asia-northeast1.run.app/benchmark
+  "${BENCHMARK_SERVICE_URL}/benchmark"
 
 python3 -m json.tool --no-ensure-ascii /tmp/dem-benchmark.json
 ```
@@ -122,7 +125,7 @@ gcloud logging read \
    AND (httpRequest.requestUrl:"/benchmark"
         OR textPayload:"Starting new instance"
         OR textPayload:"Benchmark server listening")' \
-  --project=mapsproduction-507807 \
+  --project=${PROJECT_ID} \
   --freshness=1h --order=desc --limit=30 \
   --format="json(timestamp,httpRequest,labels.instanceId,textPayload)"
 ```

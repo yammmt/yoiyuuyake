@@ -1,2 +1,5 @@
 gsi/*
 !gsi/.keep
+
+# Local deployment values
+/.env

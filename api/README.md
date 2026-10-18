@@ -24,6 +24,8 @@ HOST=0.0.0.0 PORT=8080 DEM_ROOT=gsi/derived-dem10b-v1 \
 
 ## Cloud Run 用コンテナ
 
+2026-10-17 の本番配置先、権限の分担、ビルドと配置の実行記録、確認結果は [本番 API の配置記録](../docs/cloud-deployment.md) を参照する。
+
 採用構成は Cloud Run（東京）から Cloud Storage の DEM を読み取り専用でマウントする構成である。
 コンテナは Cloud Run が設定する `PORT` を Gunicorn で待ち受け、`DEM_ROOT` を変換済み DEM のディレクトリに設定する。
 依存は Gunicorn のみで、API の評価ロジックはローカル起動と共有する。
