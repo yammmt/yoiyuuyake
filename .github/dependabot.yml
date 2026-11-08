@@ -17,3 +17,12 @@ updates:
       github-actions:
         patterns:
           - "*"
+
+  - package-ecosystem: cargo
+    directory: /recorder
+    schedule:
+      interval: weekly
+    groups:
+      recorder-dependencies:
+        patterns:
+          - "*"
