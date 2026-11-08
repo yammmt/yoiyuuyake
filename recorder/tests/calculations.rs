@@ -11,7 +11,7 @@ fn fixture() -> Value {
 
 #[test]
 fn rejects_missing_invalid_and_duplicate_inputs() {
-    let moment = DateTime::parse_from_rfc3339("2026-03-21T18:00:00+09:00")
+    let moment = DateTime::parse_from_rfc3339("2026-08-16T18:00:00+09:00")
         .unwrap()
         .to_utc();
     for mode in 0..5 {
