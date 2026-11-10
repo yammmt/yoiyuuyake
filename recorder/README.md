@@ -3,6 +3,7 @@
 Issue #54 の予約・取得・保存を行う Rust サービス。
 [実装方針](../docs/forecast-recording-plan.md) と [ADR 002](../docs/decisions/002-sunset-forecast-evaluation-records.md) に従う。
 画面用の Python API は呼び出さず、日没計算と気象評価を Rust に移植している。地形データは不要。
+配置後の結果と確認範囲は [配置・確認記録](../docs/forecast-recording-deployment.md) を参照する。
 
 ## 担当と呼び出し
 
@@ -158,7 +159,7 @@ gcloud scheduler jobs create http forecast-reserve \
 
 作成後は Scheduler の設定を取得し、朝6:00・日本時間・最大2再試行・30分間隔を確認する。
 翌日以降は実際の予約・保存とログまで確認し、設定成功だけで日没時の自動収集が成功したとは扱わない。
-アプリログは `jsonPayload.event="recorder_failed"` と `recorder_completed`、`operation` と `outcome` を確認する。
+アプリログは `jsonPayload.fields.event="recorder_failed"` と `recorder_completed`、同じ `fields` 内の `operation` と `outcome` を確認する。
 
 ## 停止と削除
 

@@ -3,6 +3,7 @@
 2026-11-08 時点の #54 の決定事項を記録する。
 設計の前提は [ADR 002](decisions/002-sunset-forecast-evaluation-records.md) とする。
 本書は実装前の方針であり、クラウド設定や動作確認の完了を示すものではない。
+実装後の配置と動作確認の結果は [配置・確認記録](forecast-recording-deployment.md) に記載する。
 
 ## 地点の管理
 
