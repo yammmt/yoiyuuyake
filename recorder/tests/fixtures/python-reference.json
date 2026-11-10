@@ -1,0 +1,954 @@
+{
+  "sunsets": [
+    {
+      "date": "2026-01-01",
+      "latitude": 35.6812,
+      "longitude": 139.7671,
+      "sunset": "2026-01-01T16:37:58.491080+09:00"
+    },
+    {
+      "date": "2026-03-21",
+      "latitude": 35.6812,
+      "longitude": 139.7671,
+      "sunset": "2026-03-21T17:52:51.993883+09:00"
+    },
+    {
+      "date": "2026-06-21",
+      "latitude": 35.6812,
+      "longitude": 139.7671,
+      "sunset": "2026-06-21T18:59:56.787494+09:00"
+    },
+    {
+      "date": "2026-11-08",
+      "latitude": 35.6812,
+      "longitude": 139.7671,
+      "sunset": "2026-11-08T16:39:42.362847+09:00"
+    },
+    {
+      "date": "2026-01-01",
+      "latitude": 43.0687,
+      "longitude": 141.3508,
+      "sunset": "2026-01-01T16:09:48.923614+09:00"
+    },
+    {
+      "date": "2026-03-21",
+      "latitude": 43.0687,
+      "longitude": 141.3508,
+      "sunset": "2026-03-21T17:47:10.046522+09:00"
+    },
+    {
+      "date": "2026-06-21",
+      "latitude": 43.0687,
+      "longitude": 141.3508,
+      "sunset": "2026-06-21T19:17:25.896333+09:00"
+    },
+    {
+      "date": "2026-11-08",
+      "latitude": 43.0687,
+      "longitude": 141.3508,
+      "sunset": "2026-11-08T16:18:43.033037+09:00"
+    },
+    {
+      "date": "2026-01-01",
+      "latitude": 26.2124,
+      "longitude": 127.6809,
+      "sunset": "2026-01-01T17:48:31.035315+09:00"
+    },
+    {
+      "date": "2026-03-21",
+      "latitude": 26.2124,
+      "longitude": 127.6809,
+      "sunset": "2026-03-21T18:40:38.351855+09:00"
+    },
+    {
+      "date": "2026-06-21",
+      "latitude": 26.2124,
+      "longitude": 127.6809,
+      "sunset": "2026-06-21T19:24:27.978034+09:00"
+    },
+    {
+      "date": "2026-11-08",
+      "latitude": 26.2124,
+      "longitude": 127.6809,
+      "sunset": "2026-11-08T17:43:13.066680+09:00"
+    }
+  ],
+  "weather": [
+    {
+      "sunset": "2026-08-16T18:00:00+09:00",
+      "payload": {
+        "latitude": 35.625,
+        "longitude": 139.75,
+        "generationtime_ms": 0.123,
+        "utc_offset_seconds": 32400,
+        "timezone": "Asia/Tokyo",
+        "timezone_abbreviation": "GMT+9",
+        "elevation": 40.0,
+        "hourly_units": {
+          "time": "iso8601",
+          "cloud_cover_low": "%",
+          "cloud_cover_mid": "%",
+          "cloud_cover_high": "%",
+          "cloud_cover": "%",
+          "visibility": "m",
+          "relative_humidity_2m": "%",
+          "precipitation": "mm",
+          "wind_speed_10m": "km/h"
+        },
+        "hourly": {
+          "time": [
+            "2026-08-16T17:00",
+            "2026-08-16T18:00",
+            "2026-08-16T19:00"
+          ],
+          "cloud_cover_low": [
+            0,
+            7,
+            14
+          ],
+          "cloud_cover_mid": [
+            0,
+            7,
+            14
+          ],
+          "cloud_cover_high": [
+            0,
+            7,
+            14
+          ],
+          "cloud_cover": [
+            0,
+            7,
+            14
+          ],
+          "visibility": [
+            0,
+            1000,
+            2000
+          ],
+          "relative_humidity_2m": [
+            0,
+            7,
+            14
+          ],
+          "precipitation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "wind_speed_10m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "gradient": 77,
+      "dramatic": 42,
+      "count": 3
+    },
+    {
+      "sunset": "2026-08-16T18:20:00+09:00",
+      "payload": {
+        "latitude": 35.625,
+        "longitude": 139.75,
+        "generationtime_ms": 0.123,
+        "utc_offset_seconds": 32400,
+        "timezone": "Asia/Tokyo",
+        "timezone_abbreviation": "GMT+9",
+        "elevation": 40.0,
+        "hourly_units": {
+          "time": "iso8601",
+          "cloud_cover_low": "%",
+          "cloud_cover_mid": "%",
+          "cloud_cover_high": "%",
+          "cloud_cover": "%",
+          "visibility": "m",
+          "relative_humidity_2m": "%",
+          "precipitation": "mm",
+          "wind_speed_10m": "km/h"
+        },
+        "hourly": {
+          "time": [
+            "2026-08-16T17:00",
+            "2026-08-16T18:00",
+            "2026-08-16T19:00"
+          ],
+          "cloud_cover_low": [
+            19,
+            26,
+            33
+          ],
+          "cloud_cover_mid": [
+            19,
+            26,
+            33
+          ],
+          "cloud_cover_high": [
+            19,
+            26,
+            33
+          ],
+          "cloud_cover": [
+            19,
+            26,
+            33
+          ],
+          "visibility": [
+            3900,
+            4900,
+            5900
+          ],
+          "relative_humidity_2m": [
+            19,
+            26,
+            33
+          ],
+          "precipitation": [
+            0.3,
+            0.3,
+            0.3
+          ],
+          "wind_speed_10m": [
+            1.5,
+            1.5,
+            1.5
+          ]
+        }
+      },
+      "gradient": 61,
+      "dramatic": 75,
+      "count": 2
+    },
+    {
+      "sunset": "2026-08-16T18:35:00+09:00",
+      "payload": {
+        "latitude": 35.625,
+        "longitude": 139.75,
+        "generationtime_ms": 0.123,
+        "utc_offset_seconds": 32400,
+        "timezone": "Asia/Tokyo",
+        "timezone_abbreviation": "GMT+9",
+        "elevation": 40.0,
+        "hourly_units": {
+          "time": "iso8601",
+          "cloud_cover_low": "%",
+          "cloud_cover_mid": "%",
+          "cloud_cover_high": "%",
+          "cloud_cover": "%",
+          "visibility": "m",
+          "relative_humidity_2m": "%",
+          "precipitation": "mm",
+          "wind_speed_10m": "km/h"
+        },
+        "hourly": {
+          "time": [
+            "2026-08-16T17:00",
+            "2026-08-16T18:00",
+            "2026-08-16T19:00"
+          ],
+          "cloud_cover_low": [
+            38,
+            45,
+            52
+          ],
+          "cloud_cover_mid": [
+            38,
+            45,
+            52
+          ],
+          "cloud_cover_high": [
+            38,
+            45,
+            52
+          ],
+          "cloud_cover": [
+            38,
+            45,
+            52
+          ],
+          "visibility": [
+            7800,
+            8800,
+            9800
+          ],
+          "relative_humidity_2m": [
+            38,
+            45,
+            52
+          ],
+          "precipitation": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "wind_speed_10m": [
+            3.0,
+            3.0,
+            3.0
+          ]
+        }
+      },
+      "gradient": 49,
+      "dramatic": 73,
+      "count": 2
+    },
+    {
+      "sunset": "2026-08-16T18:34:00+09:00",
+      "payload": {
+        "latitude": 35.625,
+        "longitude": 139.75,
+        "generationtime_ms": 0.123,
+        "utc_offset_seconds": 32400,
+        "timezone": "Asia/Tokyo",
+        "timezone_abbreviation": "GMT+9",
+        "elevation": 40.0,
+        "hourly_units": {
+          "time": "iso8601",
+          "cloud_cover_low": "%",
+          "cloud_cover_mid": "%",
+          "cloud_cover_high": "%",
+          "cloud_cover": "%",
+          "visibility": "m",
+          "relative_humidity_2m": "%",
+          "precipitation": "mm",
+          "wind_speed_10m": "km/h"
+        },
+        "hourly": {
+          "time": [
+            "2026-08-16T17:00",
+            "2026-08-16T18:00",
+            "2026-08-16T19:00"
+          ],
+          "cloud_cover_low": [
+            57,
+            64,
+            71
+          ],
+          "cloud_cover_mid": [
+            57,
+            64,
+            71
+          ],
+          "cloud_cover_high": [
+            57,
+            64,
+            71
+          ],
+          "cloud_cover": [
+            57,
+            64,
+            71
+          ],
+          "visibility": [
+            11700,
+            12700,
+            13700
+          ],
+          "relative_humidity_2m": [
+            57,
+            64,
+            71
+          ],
+          "precipitation": [
+            0.8999999999999999,
+            0.8999999999999999,
+            0.8999999999999999
+          ],
+          "wind_speed_10m": [
+            4.5,
+            4.5,
+            4.5
+          ]
+        }
+      },
+      "gradient": 34,
+      "dramatic": 61,
+      "count": 2
+    },
+    {
+      "sunset": "2026-08-16T18:00:00+09:00",
+      "payload": {
+        "latitude": 35.625,
+        "longitude": 139.75,
+        "generationtime_ms": 0.123,
+        "utc_offset_seconds": 32400,
+        "timezone": "Asia/Tokyo",
+        "timezone_abbreviation": "GMT+9",
+        "elevation": 40.0,
+        "hourly_units": {
+          "time": "iso8601",
+          "cloud_cover_low": "%",
+          "cloud_cover_mid": "%",
+          "cloud_cover_high": "%",
+          "cloud_cover": "%",
+          "visibility": "m",
+          "relative_humidity_2m": "%",
+          "precipitation": "mm",
+          "wind_speed_10m": "km/h"
+        },
+        "hourly": {
+          "time": [
+            "2026-08-16T17:00",
+            "2026-08-16T18:00",
+            "2026-08-16T19:00"
+          ],
+          "cloud_cover_low": [
+            76,
+            83,
+            90
+          ],
+          "cloud_cover_mid": [
+            76,
+            83,
+            90
+          ],
+          "cloud_cover_high": [
+            76,
+            83,
+            90
+          ],
+          "cloud_cover": [
+            76,
+            83,
+            90
+          ],
+          "visibility": [
+            15600,
+            16600,
+            17600
+          ],
+          "relative_humidity_2m": [
+            76,
+            83,
+            90
+          ],
+          "precipitation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "wind_speed_10m": [
+            6.0,
+            6.0,
+            6.0
+          ]
+        }
+      },
+      "gradient": 45,
+      "dramatic": 48,
+      "count": 3
+    },
+    {
+      "sunset": "2026-08-16T18:20:00+09:00",
+      "payload": {
+        "latitude": 35.625,
+        "longitude": 139.75,
+        "generationtime_ms": 0.123,
+        "utc_offset_seconds": 32400,
+        "timezone": "Asia/Tokyo",
+        "timezone_abbreviation": "GMT+9",
+        "elevation": 40.0,
+        "hourly_units": {
+          "time": "iso8601",
+          "cloud_cover_low": "%",
+          "cloud_cover_mid": "%",
+          "cloud_cover_high": "%",
+          "cloud_cover": "%",
+          "visibility": "m",
+          "relative_humidity_2m": "%",
+          "precipitation": "mm",
+          "wind_speed_10m": "km/h"
+        },
+        "hourly": {
+          "time": [
+            "2026-08-16T17:00",
+            "2026-08-16T18:00",
+            "2026-08-16T19:00"
+          ],
+          "cloud_cover_low": [
+            95,
+            1,
+            8
+          ],
+          "cloud_cover_mid": [
+            95,
+            1,
+            8
+          ],
+          "cloud_cover_high": [
+            95,
+            1,
+            8
+          ],
+          "cloud_cover": [
+            95,
+            1,
+            8
+          ],
+          "visibility": [
+            19500,
+            20500,
+            21500
+          ],
+          "relative_humidity_2m": [
+            95,
+            1,
+            8
+          ],
+          "precipitation": [
+            0.3,
+            0.3,
+            0.3
+          ],
+          "wind_speed_10m": [
+            7.5,
+            7.5,
+            7.5
+          ]
+        }
+      },
+      "gradient": 87,
+      "dramatic": 42,
+      "count": 2
+    },
+    {
+      "sunset": "2026-08-16T18:35:00+09:00",
+      "payload": {
+        "latitude": 35.625,
+        "longitude": 139.75,
+        "generationtime_ms": 0.123,
+        "utc_offset_seconds": 32400,
+        "timezone": "Asia/Tokyo",
+        "timezone_abbreviation": "GMT+9",
+        "elevation": 40.0,
+        "hourly_units": {
+          "time": "iso8601",
+          "cloud_cover_low": "%",
+          "cloud_cover_mid": "%",
+          "cloud_cover_high": "%",
+          "cloud_cover": "%",
+          "visibility": "m",
+          "relative_humidity_2m": "%",
+          "precipitation": "mm",
+          "wind_speed_10m": "km/h"
+        },
+        "hourly": {
+          "time": [
+            "2026-08-16T17:00",
+            "2026-08-16T18:00",
+            "2026-08-16T19:00"
+          ],
+          "cloud_cover_low": [
+            13,
+            20,
+            27
+          ],
+          "cloud_cover_mid": [
+            13,
+            20,
+            27
+          ],
+          "cloud_cover_high": [
+            13,
+            20,
+            27
+          ],
+          "cloud_cover": [
+            13,
+            20,
+            27
+          ],
+          "visibility": [
+            23400,
+            24400,
+            25400
+          ],
+          "relative_humidity_2m": [
+            13,
+            20,
+            27
+          ],
+          "precipitation": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "wind_speed_10m": [
+            9.0,
+            9.0,
+            9.0
+          ]
+        }
+      },
+      "gradient": 75,
+      "dramatic": 69,
+      "count": 2
+    },
+    {
+      "sunset": "2026-08-16T18:34:00+09:00",
+      "payload": {
+        "latitude": 35.625,
+        "longitude": 139.75,
+        "generationtime_ms": 0.123,
+        "utc_offset_seconds": 32400,
+        "timezone": "Asia/Tokyo",
+        "timezone_abbreviation": "GMT+9",
+        "elevation": 40.0,
+        "hourly_units": {
+          "time": "iso8601",
+          "cloud_cover_low": "%",
+          "cloud_cover_mid": "%",
+          "cloud_cover_high": "%",
+          "cloud_cover": "%",
+          "visibility": "m",
+          "relative_humidity_2m": "%",
+          "precipitation": "mm",
+          "wind_speed_10m": "km/h"
+        },
+        "hourly": {
+          "time": [
+            "2026-08-16T17:00",
+            "2026-08-16T18:00",
+            "2026-08-16T19:00"
+          ],
+          "cloud_cover_low": [
+            32,
+            39,
+            46
+          ],
+          "cloud_cover_mid": [
+            32,
+            39,
+            46
+          ],
+          "cloud_cover_high": [
+            32,
+            39,
+            46
+          ],
+          "cloud_cover": [
+            32,
+            39,
+            46
+          ],
+          "visibility": [
+            27300,
+            28300,
+            29300
+          ],
+          "relative_humidity_2m": [
+            32,
+            39,
+            46
+          ],
+          "precipitation": [
+            0.8999999999999999,
+            0.8999999999999999,
+            0.8999999999999999
+          ],
+          "wind_speed_10m": [
+            10.5,
+            10.5,
+            10.5
+          ]
+        }
+      },
+      "gradient": 60,
+      "dramatic": 77,
+      "count": 2
+    },
+    {
+      "sunset": "2026-08-16T18:00:00+09:00",
+      "payload": {
+        "latitude": 35.625,
+        "longitude": 139.75,
+        "generationtime_ms": 0.123,
+        "utc_offset_seconds": 32400,
+        "timezone": "Asia/Tokyo",
+        "timezone_abbreviation": "GMT+9",
+        "elevation": 40.0,
+        "hourly_units": {
+          "time": "iso8601",
+          "cloud_cover_low": "%",
+          "cloud_cover_mid": "%",
+          "cloud_cover_high": "%",
+          "cloud_cover": "%",
+          "visibility": "m",
+          "relative_humidity_2m": "%",
+          "precipitation": "mm",
+          "wind_speed_10m": "km/h"
+        },
+        "hourly": {
+          "time": [
+            "2026-08-16T17:00",
+            "2026-08-16T18:00",
+            "2026-08-16T19:00"
+          ],
+          "cloud_cover_low": [
+            51,
+            58,
+            65
+          ],
+          "cloud_cover_mid": [
+            51,
+            58,
+            65
+          ],
+          "cloud_cover_high": [
+            51,
+            58,
+            65
+          ],
+          "cloud_cover": [
+            51,
+            58,
+            65
+          ],
+          "visibility": [
+            31200,
+            32200,
+            33200
+          ],
+          "relative_humidity_2m": [
+            51,
+            58,
+            65
+          ],
+          "precipitation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "wind_speed_10m": [
+            12.0,
+            12.0,
+            12.0
+          ]
+        }
+      },
+      "gradient": 67,
+      "dramatic": 86,
+      "count": 3
+    },
+    {
+      "sunset": "2026-08-16T18:20:00+09:00",
+      "payload": {
+        "latitude": 35.625,
+        "longitude": 139.75,
+        "generationtime_ms": 0.123,
+        "utc_offset_seconds": 32400,
+        "timezone": "Asia/Tokyo",
+        "timezone_abbreviation": "GMT+9",
+        "elevation": 40.0,
+        "hourly_units": {
+          "time": "iso8601",
+          "cloud_cover_low": "%",
+          "cloud_cover_mid": "%",
+          "cloud_cover_high": "%",
+          "cloud_cover": "%",
+          "visibility": "m",
+          "relative_humidity_2m": "%",
+          "precipitation": "mm",
+          "wind_speed_10m": "km/h"
+        },
+        "hourly": {
+          "time": [
+            "2026-08-16T17:00",
+            "2026-08-16T18:00",
+            "2026-08-16T19:00"
+          ],
+          "cloud_cover_low": [
+            70,
+            77,
+            84
+          ],
+          "cloud_cover_mid": [
+            70,
+            77,
+            84
+          ],
+          "cloud_cover_high": [
+            70,
+            77,
+            84
+          ],
+          "cloud_cover": [
+            70,
+            77,
+            84
+          ],
+          "visibility": [
+            35100,
+            36100,
+            37100
+          ],
+          "relative_humidity_2m": [
+            70,
+            77,
+            84
+          ],
+          "precipitation": [
+            0.3,
+            0.3,
+            0.3
+          ],
+          "wind_speed_10m": [
+            13.5,
+            13.5,
+            13.5
+          ]
+        }
+      },
+      "gradient": 45,
+      "dramatic": 51,
+      "count": 2
+    },
+    {
+      "sunset": "2026-08-16T18:35:00+09:00",
+      "payload": {
+        "latitude": 35.625,
+        "longitude": 139.75,
+        "generationtime_ms": 0.123,
+        "utc_offset_seconds": 32400,
+        "timezone": "Asia/Tokyo",
+        "timezone_abbreviation": "GMT+9",
+        "elevation": 40.0,
+        "hourly_units": {
+          "time": "iso8601",
+          "cloud_cover_low": "%",
+          "cloud_cover_mid": "%",
+          "cloud_cover_high": "%",
+          "cloud_cover": "%",
+          "visibility": "m",
+          "relative_humidity_2m": "%",
+          "precipitation": "mm",
+          "wind_speed_10m": "km/h"
+        },
+        "hourly": {
+          "time": [
+            "2026-08-16T17:00",
+            "2026-08-16T18:00",
+            "2026-08-16T19:00"
+          ],
+          "cloud_cover_low": [
+            89,
+            96,
+            2
+          ],
+          "cloud_cover_mid": [
+            89,
+            96,
+            2
+          ],
+          "cloud_cover_high": [
+            89,
+            96,
+            2
+          ],
+          "cloud_cover": [
+            89,
+            96,
+            2
+          ],
+          "visibility": [
+            39000,
+            0,
+            1000
+          ],
+          "relative_humidity_2m": [
+            89,
+            96,
+            2
+          ],
+          "precipitation": [
+            0.6,
+            0.6,
+            0.6
+          ],
+          "wind_speed_10m": [
+            15.0,
+            15.0,
+            15.0
+          ]
+        }
+      },
+      "gradient": 39,
+      "dramatic": 69,
+      "count": 2
+    },
+    {
+      "sunset": "2026-08-16T18:34:00+09:00",
+      "payload": {
+        "latitude": 35.625,
+        "longitude": 139.75,
+        "generationtime_ms": 0.123,
+        "utc_offset_seconds": 32400,
+        "timezone": "Asia/Tokyo",
+        "timezone_abbreviation": "GMT+9",
+        "elevation": 40.0,
+        "hourly_units": {
+          "time": "iso8601",
+          "cloud_cover_low": "%",
+          "cloud_cover_mid": "%",
+          "cloud_cover_high": "%",
+          "cloud_cover": "%",
+          "visibility": "m",
+          "relative_humidity_2m": "%",
+          "precipitation": "mm",
+          "wind_speed_10m": "km/h"
+        },
+        "hourly": {
+          "time": [
+            "2026-08-16T17:00",
+            "2026-08-16T18:00",
+            "2026-08-16T19:00"
+          ],
+          "cloud_cover_low": [
+            7,
+            14,
+            21
+          ],
+          "cloud_cover_mid": [
+            7,
+            14,
+            21
+          ],
+          "cloud_cover_high": [
+            7,
+            14,
+            21
+          ],
+          "cloud_cover": [
+            7,
+            14,
+            21
+          ],
+          "visibility": [
+            2900,
+            3900,
+            4900
+          ],
+          "relative_humidity_2m": [
+            7,
+            14,
+            21
+          ],
+          "precipitation": [
+            0.8999999999999999,
+            0.8999999999999999,
+            0.8999999999999999
+          ],
+          "wind_speed_10m": [
+            16.5,
+            16.5,
+            16.5
+          ]
+        }
+      },
+      "gradient": 49,
+      "dramatic": 43,
+      "count": 2
+    }
+  ]
+}

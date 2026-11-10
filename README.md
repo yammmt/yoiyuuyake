@@ -36,6 +36,7 @@ site/       地点指定と夕焼け評価を表示する静的Webアプリ（Fi
 api/        日没・気象・地形をまとめるPython API（ローカル / Cloud Run）
 terrain/    DEM変換、天文計算、地形視界
 weather/    Open-Meteoの取得と夕焼けスコア
+recorder/   日没予報の自動予約・取得・Firestore保存（Rust）
 docs/       MVP仕様、データ準備、判断記録
 gsi/        Git管理外のDEM元データと変換済みタイル
 ```
@@ -95,6 +96,7 @@ Webアプリの既定URLは <http://localhost:3000>、統合APIは <http://127.0
 - [本番APIの配置記録と再開手順](docs/cloud-deployment.md)
 - [Webアプリ](site/README.md)
 - [気象取得とスコア](weather/README.md)
+- [予報収集サービスと配置手順](recorder/README.md)
 
 ```bash
 python3 -m unittest discover -s api/tests

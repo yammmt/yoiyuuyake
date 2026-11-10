@@ -1,0 +1,16 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --platform=linux/amd64
+      - --file=recorder/Dockerfile
+      - --tag=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/recorder:$BUILD_ID
+      - .
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/recorder:$BUILD_ID
+substitutions:
+  _REGION: asia-northeast1
+  _REPOSITORY: yoiyuuyake
+options:
+  logging: CLOUD_LOGGING_ONLY
+timeout: 1200s
